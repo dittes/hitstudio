@@ -25,10 +25,23 @@
 .eq-bands{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px;margin-top:14px}
 .eq-band{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
 .eq-band output{font:600 11.5px/1 var(--mono);color:var(--text);min-height:12px}
-.eq-band input[type=range]{writing-mode:vertical-lr;direction:rtl;width:28px;height:150px;margin:0;cursor:ns-resize}
 .eq-band span{font-size:11.5px;font-weight:650;color:var(--text-2)}
 .eq-band small{font-size:9px;color:var(--text-3);margin-left:1px}
 .eq-off .eq-bands,.eq-off .eq-presets{opacity:.5}
+
+/* rack-unit look, shared with the DJ mixer (vars and fader styles live in dj-hardware.css) */
+.eq-main.hw{--deck:var(--accent);position:relative;background:var(--hw-brush),var(--hw-panel);border:1px solid var(--hw-edge);box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 18px 40px -24px rgba(0,0,0,.8);padding:18px 26px 16px}
+.eq-main.hw::before{content:"";position:absolute;inset:8px;pointer-events:none;border-radius:inherit;
+  background:radial-gradient(circle,#55555f 0 2px,transparent 2.5px) top left/10px 10px no-repeat,radial-gradient(circle,#55555f 0 2px,transparent 2.5px) top right/10px 10px no-repeat,radial-gradient(circle,#55555f 0 2px,transparent 2.5px) bottom left/10px 10px no-repeat,radial-gradient(circle,#55555f 0 2px,transparent 2.5px) bottom right/10px 10px no-repeat}
+[data-theme='light'] .eq-main.hw::before{opacity:.45}
+.eq-main.hw .eq-graph-wrap{border-color:var(--hw-edge);box-shadow:inset 0 2px 8px rgba(0,0,0,.35),0 1px 0 rgba(255,255,255,.06)}
+.eq-main.hw .eq-graph-head{color:var(--hw-label)}
+.eq-main.hw .eq-bands{margin-top:16px;padding-top:14px;border-top:1px solid var(--hw-edge)}
+.eq-fader{--fh:160px}
+.eq-fader .fader-slot::before{background:linear-gradient(180deg,var(--hw-groove) 0 calc(50% - 1px),var(--deck) calc(50% - 1px) calc(50% + 1px),var(--hw-groove) calc(50% + 1px))}
+.eq-main.hw .eq-band output{padding:2px 6px;border-radius:5px;background:var(--hw-groove);color:#e9e6ff;font-size:10.5px;min-width:34px;text-align:center;box-shadow:inset 0 1px 2px rgba(0,0,0,.6)}
+.eq-main.hw .eq-band span{color:var(--hw-label);letter-spacing:.04em}
+.eq-main.hw .ctl-val{display:none}
 .eq-off .eq-graph-head b{color:var(--text-2)}
 
 .eq-presets{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
@@ -45,7 +58,11 @@
   .eq-root{padding:14px 12px 20px}
   .eq-head-actions{width:100%;justify-content:space-between}
   .eq-bands{gap:0}
-  .eq-band input[type=range]{height:120px;width:22px}
+  .eq-main.hw{padding:14px 10px 12px}
+  .eq-fader{--fh:130px}
+  .eq-fader .fader-slot{width:20px}
+  .eq-fader .fader-cap{width:17px;margin-left:-8.5px}
+  .eq-main.hw .eq-band output{min-width:0;padding:2px 3px}
   .eq-band output{font-size:9.5px}
   .eq-band span{font-size:10px}.eq-band small{display:none}
   .eq-presets{grid-template-columns:repeat(2,minmax(0,1fr))}

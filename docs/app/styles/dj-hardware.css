@@ -1,0 +1,112 @@
+/* ── DJ hardware look: rotary knobs, fader caps, LED meters, brushed mixer panel ───────────── */
+.dj-root,.hw{
+  --hw-panel:linear-gradient(180deg,#22222c,#16161d 60%,#121218);
+  --hw-brush:repeating-linear-gradient(90deg,rgba(255,255,255,.018) 0 1px,transparent 1px 3px);
+  --hw-edge:rgba(255,255,255,.08);
+  --hw-groove:#07070a;
+  --hw-track:rgba(255,255,255,.09);
+  --hw-label:#a9a6bb;
+  --hw-cap-top:#5b5b68;--hw-cap-bot:#24242c;
+  --hw-knob-a:#3d3d49;--hw-knob-b:#1b1b22;
+}
+[data-theme='light'] .dj-root,[data-theme='light'] .hw{
+  --hw-panel:linear-gradient(180deg,#f6f5fa,#e5e3ed 60%,#dcd9e5);
+  --hw-brush:repeating-linear-gradient(90deg,rgba(255,255,255,.35) 0 1px,transparent 1px 3px);
+  --hw-edge:rgba(20,10,60,.12);
+  --hw-groove:#2a2833;
+  --hw-track:rgba(20,10,60,.12);
+  --hw-label:#5b5a73;
+  --hw-cap-top:#6a6a78;--hw-cap-bot:#2c2c35;
+}
+
+/* ── generic control plumbing ── */
+.ctl{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;user-select:none;-webkit-user-select:none}
+.ctl>input[type=range]{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;margin:0;opacity:0;pointer-events:none}
+.ctl-label{font-size:9.5px;font-weight:750;letter-spacing:.09em;text-transform:uppercase;color:var(--hw-label);line-height:1}
+.ctl-val{position:absolute;left:50%;bottom:calc(100% + 4px);transform:translateX(-50%);padding:3px 7px;border-radius:6px;background:#0b0b10;color:#fff;font:600 10.5px/1.2 var(--mono);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .12s;z-index:5;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.ctl:hover .ctl-val,.ctl.is-dragging .ctl-val,.ctl:has(input:focus-visible) .ctl-val{opacity:1}
+
+/* ── rotary knob ── */
+.knob{--k:42px}
+.knob-body{position:relative;width:var(--k);height:var(--k);cursor:ns-resize;touch-action:none}
+.knob-arc{position:absolute;inset:-6px;border-radius:50%;
+  background:conic-gradient(from var(--from,-135deg),var(--deck,var(--accent)) 0 var(--sweep,0deg),transparent 0),conic-gradient(from -135deg,var(--hw-track) 0 270deg,transparent 0);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px));
+  filter:drop-shadow(0 0 3px color-mix(in srgb,var(--deck,var(--accent)) 55%,transparent))}
+.knob.at-default .knob-arc{filter:none}
+.knob-cap{position:absolute;inset:0;border-radius:50%;transform:rotate(var(--angle,0deg));
+  background:radial-gradient(circle at 50% 30%,var(--hw-knob-a),var(--hw-knob-b) 70%);
+  box-shadow:0 3px 6px rgba(0,0,0,.55),0 1px 0 rgba(255,255,255,.12) inset,0 -2px 4px rgba(0,0,0,.4) inset}
+.knob-cap::before{content:"";position:absolute;inset:0;border-radius:50%;background:repeating-conic-gradient(rgba(255,255,255,.07) 0 5deg,transparent 5deg 10deg);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 5px),#000 calc(100% - 4px));mask:radial-gradient(farthest-side,transparent calc(100% - 5px),#000 calc(100% - 4px))}
+.knob-cap::after{content:"";position:absolute;inset:24%;border-radius:50%;background:radial-gradient(circle at 45% 35%,rgba(255,255,255,.16),rgba(255,255,255,0) 70%)}
+.knob-cap i{position:absolute;left:50%;top:7%;width:3px;height:30%;margin-left:-1.5px;border-radius:2px;background:#fff;box-shadow:0 0 5px rgba(255,255,255,.6)}
+.knob:has(input:focus-visible) .knob-cap{outline:2px solid var(--accent);outline-offset:6px}
+.knob-trim{--k:36px}
+.knob-eq{--k:42px}
+.knob-filter{--k:48px}
+.knob-filter .knob-cap{background:radial-gradient(circle at 50% 30%,color-mix(in srgb,var(--deck) 55%,#3d3d49),color-mix(in srgb,var(--deck) 25%,#18181f) 70%)}
+.knob-sm{--k:34px}
+
+/* ── faders ── */
+.fader-slot{position:relative;touch-action:none}
+.fader-v .fader-slot{width:30px;height:var(--fh,150px);cursor:ns-resize}
+.fader-h .fader-slot{height:30px;width:var(--fw,220px);cursor:ew-resize}
+.fader-slot::before{content:"";position:absolute;border-radius:3px;background:var(--hw-groove);box-shadow:0 1px 0 var(--hw-edge),inset 0 1px 2px rgba(0,0,0,.7)}
+.fader-v .fader-slot::before{left:50%;top:6px;bottom:6px;width:5px;margin-left:-2.5px}
+.fader-h .fader-slot::before{top:50%;left:6px;right:6px;height:5px;margin-top:-2.5px}
+/* tick marks along the slot */
+.fader-slot::after{content:"";position:absolute;pointer-events:none;opacity:.5}
+.fader-v .fader-slot::after{left:2px;right:2px;top:11px;bottom:11px;background:repeating-linear-gradient(180deg,var(--hw-label) 0 1px,transparent 1px 12.5%);-webkit-mask:linear-gradient(90deg,#000 0 6px,transparent 6px calc(100% - 6px),#000 calc(100% - 6px));mask:linear-gradient(90deg,#000 0 6px,transparent 6px calc(100% - 6px),#000 calc(100% - 6px))}
+.fader-h .fader-slot::after{top:2px;bottom:2px;left:11px;right:11px;background:repeating-linear-gradient(90deg,var(--hw-label) 0 1px,transparent 1px 10%);-webkit-mask:linear-gradient(180deg,#000 0 5px,transparent 5px calc(100% - 5px),#000 calc(100% - 5px));mask:linear-gradient(180deg,#000 0 5px,transparent 5px calc(100% - 5px),#000 calc(100% - 5px))}
+.fader-fill{position:absolute;border-radius:3px;background:var(--deck,var(--accent));box-shadow:0 0 8px color-mix(in srgb,var(--deck,var(--accent)) 60%,transparent);pointer-events:none;z-index:1}
+.fader-v .fader-fill{left:50%;width:3px;margin-left:-1.5px;bottom:calc(11px + var(--f0,0) * (100% - 22px));top:calc(11px + (1 - var(--f1,0)) * (100% - 22px))}
+.fader-h .fader-fill{top:50%;height:3px;margin-top:-1.5px;left:calc(11px + var(--f0,0) * (100% - 22px));right:calc(11px + (1 - var(--f1,0)) * (100% - 22px))}
+.fader-cap{position:absolute;z-index:2;border-radius:4px;background:linear-gradient(180deg,var(--hw-cap-top),var(--hw-cap-bot));box-shadow:0 4px 8px rgba(0,0,0,.55),0 1px 0 rgba(255,255,255,.2) inset,0 -1px 0 rgba(0,0,0,.4) inset}
+.fader-cap::after{content:"";position:absolute;background:#fff;border-radius:1px;box-shadow:0 0 4px rgba(255,255,255,.5)}
+.fader-v .fader-cap{left:50%;width:30px;height:22px;margin-left:-15px;bottom:calc(var(--p,0) * (100% - 22px))}
+.fader-v .fader-cap::after{left:4px;right:4px;top:50%;height:2px;margin-top:-1px}
+.fader-h .fader-cap{top:50%;height:30px;width:22px;margin-top:-15px;left:calc(var(--p,0) * (100% - 22px))}
+.fader-h .fader-cap::after{top:4px;bottom:4px;left:50%;width:2px;margin-left:-1px}
+.fader:has(input:focus-visible) .fader-cap{outline:2px solid var(--accent);outline-offset:3px}
+.fader.is-dragging .fader-cap{filter:brightness(1.15)}
+
+/* ── mixer panel ── */
+.dj-root .dj-mixer{background:var(--hw-brush),var(--hw-panel);border:1px solid var(--hw-edge);box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 18px 40px -22px rgba(0,0,0,.8);position:relative}
+.dj-root .dj-mixer::before{content:"";position:absolute;inset:7px;pointer-events:none;border-radius:inherit;
+  background:radial-gradient(circle,#55555f 0 2px,transparent 2.5px) top left/10px 10px no-repeat,radial-gradient(circle,#55555f 0 2px,transparent 2.5px) top right/10px 10px no-repeat,radial-gradient(circle,#55555f 0 2px,transparent 2.5px) bottom left/10px 10px no-repeat,radial-gradient(circle,#55555f 0 2px,transparent 2.5px) bottom right/10px 10px no-repeat}
+[data-theme='light'] .dj-root .dj-mixer::before{opacity:.45}
+.dj-root .dj-mixer-chs{position:relative;display:flex;gap:0;justify-content:center;align-items:stretch}
+.dj-root .dj-mixer-chs::after{content:"";position:absolute;left:50%;top:6px;bottom:6px;width:1px;background:var(--hw-edge)}
+.dj-root .dj-ch{background:none;border:0;padding:6px 10px 4px;gap:10px;min-width:0;flex:1;align-items:center}
+.dj-root .dj-ch-tag{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:850;color:var(--deck);letter-spacing:.04em}
+.dj-ch-led{width:7px;height:7px;border-radius:50%;background:color-mix(in srgb,var(--deck) 25%,#222);box-shadow:inset 0 1px 1px rgba(0,0,0,.5);transition:background .1s,box-shadow .1s}
+.dj-ch-led.on{background:var(--deck);box-shadow:0 0 8px var(--deck)}
+.dj-ch-eq{display:flex;flex-direction:column;gap:12px;padding:10px 0;border-block:1px solid var(--hw-edge)}
+.dj-root .dj-ch-fader{display:flex;align-items:flex-end;gap:8px;margin-top:4px}
+.dj-root .dj-ch-b .dj-ch-fader{flex-direction:row-reverse}
+.dj-vu{width:8px;height:150px;border-radius:2px;background:var(--hw-groove);padding:0;box-shadow:inset 0 1px 2px rgba(0,0,0,.6)}
+.dj-level{--fh:150px}
+.dj-root .dj-xf{border-top:1px solid var(--hw-edge);padding-top:12px;gap:8px}
+.dj-root .dj-xf-labels{width:240px}
+.dj-root .dj-xf-labels span:not(.faint){color:var(--text)}
+.dj-xfader{--fw:240px}
+.dj-root .dj-xf select{font-size:11px;padding:4px 8px;text-transform:capitalize}
+
+/* ── deck: pitch fader and FX knobs ── */
+.dj-root .dj-tempo{gap:8px}
+.dj-pitch{--fh:150px}
+.dj-pitch .ctl-val{position:static;transform:none;opacity:1;background:none;box-shadow:none;color:var(--text);padding:0;font-size:11px;order:3}
+.dj-pitch .ctl-label{order:-1}
+.dj-pitch .fader-slot::before{background:linear-gradient(180deg,var(--hw-groove) 0 calc(50% - 1px),var(--deck) calc(50% - 1px) calc(50% + 1px),var(--hw-groove) calc(50% + 1px))}
+.dj-root .dj-fx-knobs{display:flex;align-items:center;justify-content:space-around;gap:10px;padding:14px 10px 6px;margin-top:4px;border-radius:var(--r-md);background:var(--hw-brush),var(--hw-panel);border:1px solid var(--hw-edge)}
+.dj-fx-title{font-size:10px;font-weight:850;letter-spacing:.12em;color:var(--hw-label);writing-mode:vertical-rl;transform:rotate(180deg)}
+
+@media(max-width:700px){
+  .knob-eq{--k:38px}.knob-filter{--k:42px}
+  .dj-level,.dj-pitch{--fh:120px}.dj-vu{height:120px}
+  .dj-xfader{--fw:200px}.dj-root .dj-xf-labels{width:200px}
+  .dj-root .platter{--size:168px}
+  .dj-root .dj-deck-body{gap:8px}
+  .dj-root .dj-crate-head{flex-wrap:wrap}
+}

@@ -4,8 +4,12 @@ import { useStore } from '../../core/store.js'
 import { toast } from '../../core/toast.js'
 import { importFiles } from './import.js'
 import { ioSet, pickFiles } from './state.js'
+import { splitFile } from '../tools/stems.js'
+import { karaokeFile } from '../tools/karaoke.js'
 
 export const QUICK_TASKS                                                  = [
+  { id: 'karaoke', label: 'Karaoke & instrumental', sub: 'Remove the vocals from a song' },
+  { id: 'stems', label: 'Split into instruments', sub: 'Drums, bass, vocals and more' },
   { id: 'cut', label: 'Cut a song', sub: 'Keep just the best part' },
   { id: 'join', label: 'Join files', sub: 'Glue songs end to end' },
   { id: 'ringtone', label: 'Make a ringtone', sub: '30 seconds with fades' },
@@ -19,6 +23,14 @@ export const QUICK_TASKS                                                  = [
 export async function quickTask(kind           ) {
   const files = await pickFiles({ multiple: kind === 'join' })
   if (!files.length) return
+  if (kind === 'stems') {
+    await splitFile(files[0])
+    return
+  }
+  if (kind === 'karaoke') {
+    await karaokeFile(files[0])
+    return
+  }
   if (kind === 'join' && files.length < 2) toast({ title: 'Tip: pick two or more files', body: 'Hold ⌘ / Ctrl (or Shift) to select several in the file window. You can also drop more files in later.', ms: 4500 })
   const res = await importFiles(files, { sequence: kind === 'join' })
   if (!res.clipIds.length) return

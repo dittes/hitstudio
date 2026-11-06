@@ -138,6 +138,13 @@ button.danger{color:#f87171;border-color:color-mix(in srgb,#f87171 40%,var(--bor
 [data-theme='light'] .dj-root .platter.playing{box-shadow:0 0 0 6px #e7e5ef,0 0 0 7px color-mix(in srgb,var(--deck) 60%,transparent),0 0 36px -8px var(--deck),0 18px 32px -16px rgba(40,20,90,.35)}
 [data-theme='light'] .dj-root .platter.is-empty{opacity:.85}
 [data-theme='light'] .vinyl{box-shadow:0 2px 6px rgba(0,0,0,.25)}
+/* DJ: "Pick a song" lives in each deck's lane of the big waveform view */
+.dj-waves{position:relative}
+.dj-wave-lanes{position:absolute;inset:0;display:grid;grid-template-rows:1fr 1fr;pointer-events:none}
+.dj-wave-lane{display:grid;place-items:center}
+.dj-wave-lane .dj-pick{position:static;inset:auto;margin:0;pointer-events:auto}
+.dj-overview-empty{position:absolute;inset:0;display:grid;place-items:center;font-size:11.5px;border:1px dashed var(--border-strong);border-radius:var(--r-md)}
+.dj-overview-empty[hidden]{display:none}
 /* the workspace is only focused programmatically (skip target); never draw a ring around the whole screen */
 #workspace:focus{outline:none}
 /* UX audit fixes: screens taller than the window scroll instead of clipping controls */
@@ -146,3 +153,31 @@ button.danger{color:#f87171;border-color:color-mix(in srgb,#f87171 40%,var(--bor
 .mx-board{min-height:540px}
 /* Chrome draws a dark unfilled range track when accent-color is light; use a deeper accent in light theme */
 [data-theme='light'] input[type=range]{accent-color:#7c3aed}
+
+/* ---- stem splitting dialog ---- */
+.stem-modal{display:flex;flex-direction:column;gap:14px;min-width:min(460px,80vw)}
+.stem-name{display:flex;align-items:center;gap:10px;margin:0;font-size:15px}
+.stem-name .ic{width:18px;height:18px;color:var(--accent)}
+.stem-bar{height:12px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);overflow:hidden}
+.stem-bar i{display:block;height:100%;width:0;border-radius:999px;background:var(--accent-grad);transition:width .25s ease}
+.stem-meta{display:flex;justify-content:space-between;font-size:13px}
+.stem-chips{display:flex;gap:8px;flex-wrap:wrap}
+.stem-chips span{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;background:color-mix(in srgb,var(--c) 18%,transparent);color:var(--text);font-size:12.5px;font-weight:650}
+.stem-chips .ic{width:14px;height:14px;color:var(--c)}
+.stem-note{margin:0;font-size:12px;line-height:1.5}
+
+/* ---- karaoke result dialog ---- */
+.kar-modal{display:flex;flex-direction:column;gap:14px;min-width:min(560px,84vw)}
+.kar-song{display:flex;align-items:center;gap:10px;margin:0;font-size:15px}
+.kar-song .ic{width:18px;height:18px;color:var(--accent)}
+.kar-cards{display:grid;gap:10px}
+.kar-card{--c:var(--accent);display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px 14px;align-items:center;padding:14px;border-radius:16px;border:1px solid color-mix(in srgb,var(--c) 35%,var(--border));background:linear-gradient(120deg,color-mix(in srgb,var(--c) 12%,var(--surface)),var(--surface))}
+.kar-ic{display:grid;place-items:center;width:44px;height:44px;border-radius:13px;background:color-mix(in srgb,var(--c) 22%,transparent);color:var(--c)}
+.kar-ic .ic{width:21px;height:21px}
+.kar-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.kar-text b{font-size:15px}.kar-text small{color:var(--text-3);font-size:12.5px}
+.kar-btns{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap}
+.kar-btns button,.kar-foot button{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 14px;border-radius:11px;font-weight:600}
+.kar-btns .ic,.kar-foot .ic{width:15px;height:15px}
+.kar-foot{align-items:center;gap:12px}
+.kar-note{margin:0;font-size:12px;line-height:1.5}

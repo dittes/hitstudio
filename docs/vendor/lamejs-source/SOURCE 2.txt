@@ -1,3 +1,0 @@
-Corresponding source for @breezystack/lamejs 1.2.7, npm gitHead 1fb0ef5fa177413107e2e107d054a9b994e3f79c.
-https://codeload.github.com/gideonstele/lamejs/zip/1fb0ef5fa177413107e2e107d054a9b994e3f79c
-Build scripts/dependencies are recorded in package.json and pnpm-lock.yaml. The bundled vendor/lamejs.js is the unmodified npm ES module. Replace this module and keep the existing import-map mapping to use a modified encoder.

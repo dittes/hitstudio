@@ -3,6 +3,7 @@ import { $, $$, icon, escape } from '../../dom.js';
 import { useStore } from '../../core/store.js';
 import { getEngine } from '../../core/engine.js';
 import { toast } from '../../core/toast.js';
+import { fader, attachControls } from '../../ui/controls.js';
 import { EQ_BANDS, EQ_PRESETS, EQ_RANGE, FLAT_EQ, eqOf, eqActive, eqLabel, eqHeadroomDb, makeEqFilters } from './eq.js';
 
 const S = () => useStore.getState();
@@ -37,14 +38,14 @@ export function mountEq(container) {
         <button data-action="eq-reset">${icon('undo')}<span>Reset to flat</span></button>
       </div>
     </header>
-    <div class="eq-card eq-main">
+    <div class="eq-card eq-main hw">
       <div class="eq-graph-head"><span class="eq-status"></span><span class="eq-headroom"></span></div>
       <div class="eq-graph-wrap"><canvas class="eq-graph" aria-label="Equalizer curve. Drag a dot up or down to change a band."></canvas></div>
-      <div class="eq-bands">${EQ_BANDS.map((b, i) => `<div class="eq-band"><output data-band-out="${i}">0</output><input type="range" data-band="${i}" min="${-EQ_RANGE}" max="${EQ_RANGE}" step="0.5" value="0" aria-label="${fmtHz(b.f)} hertz band, in decibels" title="Double-click to reset" /><span>${b.label}<small>Hz</small></span></div>`).join('')}</div>
+      <div class="eq-bands">${EQ_BANDS.map((b, i) => `<div class="eq-band"><output data-band-out="${i}">0</output>${fader({ axis: 'v', unit: 'db', cls: 'eq-fader', input: `<input type="range" data-band="${i}" data-default="0" min="${-EQ_RANGE}" max="${EQ_RANGE}" step="0.5" value="0" aria-label="${fmtHz(b.f)} hertz band, in decibels" />` })}<span>${b.label}<small>Hz</small></span></div>`).join('')}</div>
     </div>
     <div class="eq-card"><h2>Presets</h2><div class="eq-presets">${EQ_PRESETS.map((p) => `<button class="eq-preset" data-eq-preset="${p.id}" aria-pressed="false">${miniCurve(p.gains)}<b>${escape(p.name)}</b><small>${escape(p.hint)}</small></button>`).join('')}</div></div>
   </section>`;
-  const root = container.firstElementChild, canvas = $('.eq-graph', root);
+  const root = container.firstElementChild, canvas = $('.eq-graph', root), ctl = attachControls(root);
 
   // response maths on a throwaway offline context (works even while the EQ is switched off)
   const off = new OfflineAudioContext(1, 1, 48000), probe = makeEqFilters(off);
@@ -92,7 +93,8 @@ export function mountEq(container) {
 
   function syncUI() {
     const eq = eqOf(S().project);
-    $$('[data-band]', root).forEach((input) => { const i = Number(input.dataset.band); if (document.activeElement !== input || !drag) input.value = eq.gains[i]; $(`[data-band-out="${i}"]`, root).textContent = fmtDb(eq.gains[i]) });
+    $$('[data-band]', root).forEach((input) => { const i = Number(input.dataset.band); if (!ctl.isBusy(input)) input.value = eq.gains[i]; $(`[data-band-out="${i}"]`, root).textContent = fmtDb(eq.gains[i]) });
+    ctl.sync();
     $$('[data-eq-preset]', root).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.eqPreset === eq.preset)));
     $('[data-eq-enabled]', root).checked = eq.enabled;
     $('.eq-power-label', root).textContent = eq.enabled ? 'On' : 'Off';
@@ -108,11 +110,6 @@ export function mountEq(container) {
     if (i == null) return;
     const gains = [...eqOf(S().project).gains]; gains[Number(i)] = Number(e.target.value);
     setGains(gains, 'Adjust EQ', 'eq-band-' + i);
-  });
-  root.addEventListener('dblclick', (e) => {
-    const i = e.target.dataset?.band;
-    if (i == null) return;
-    const gains = [...eqOf(S().project).gains]; gains[Number(i)] = 0; setGains(gains, 'Reset EQ band');
   });
   root.addEventListener('change', (e) => {
     if (!('eqEnabled' in e.target.dataset)) return;
