@@ -1,0 +1,58 @@
+/* HitStudio design tokens. Use these variables everywhere – never hard-code colors. */
+:root {
+  --font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --r-xs: 4px; --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px; --r-full: 999px;
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px;
+
+  --accent: #a78bfa;          /* violet */
+  --accent-2: #f472b6;        /* pink   */
+  --accent-3: #38bdf8;        /* sky    */
+  --accent-grad: linear-gradient(135deg, #a78bfa 0%, #f472b6 55%, #fb923c 100%);
+  --ok: #4ade80; --warn: #facc15; --danger: #f87171;
+
+  --ease-out: cubic-bezier(.22,1,.36,1);
+  --ease-spring: cubic-bezier(.34,1.56,.64,1);
+  --dur-1: 120ms; --dur-2: 200ms; --dur-3: 360ms;
+
+  --topbar-h: 56px; --rail-w: 72px; --transport-h: 64px; --header-w: 220px;
+}
+[data-theme='dark'] {
+  --bg: #0c0c10;
+  --bg-2: #121218;
+  --surface: #17171f;
+  --surface-2: #1e1e28;
+  --surface-3: #262632;
+  --border: rgba(255,255,255,.07);
+  --border-strong: rgba(255,255,255,.14);
+  --text: #eeeef3;
+  --text-2: #a6a6b8;
+  --text-3: #6b6b80;
+  --shadow: 0 8px 30px rgba(0,0,0,.45), 0 1px 0 rgba(255,255,255,.04) inset;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,.35);
+  --glow: 0 0 0 1px rgba(167,139,250,.5), 0 0 24px rgba(167,139,250,.35);
+  --grid: rgba(255,255,255,.045);
+  --grid-strong: rgba(255,255,255,.09);
+  --wave-bg: rgba(255,255,255,.02);
+  color-scheme: dark;
+}
+[data-theme='light'] {
+  --bg: #f4f3f8;
+  --bg-2: #eceaf3;
+  --surface: #ffffff;
+  --surface-2: #f7f6fb;
+  --surface-3: #efedf6;
+  --border: rgba(20,10,60,.08);
+  --border-strong: rgba(20,10,60,.16);
+  --text: #18172a;
+  --text-2: #5b5a73;
+  --text-3: #9493aa;
+  --shadow: 0 10px 30px rgba(40,20,90,.10), 0 1px 0 rgba(255,255,255,.8) inset;
+  --shadow-sm: 0 2px 8px rgba(40,20,90,.08);
+  --glow: 0 0 0 1px rgba(124,58,237,.45), 0 0 22px rgba(167,139,250,.35);
+  --grid: rgba(20,10,60,.05);
+  --grid-strong: rgba(20,10,60,.1);
+  --wave-bg: rgba(20,10,60,.02);
+  color-scheme: light;
+}

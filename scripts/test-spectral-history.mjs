@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {SpectralHistory,SPECTRAL_BINS,MIN_DB,MAX_DB} from '../app/features/visualizer/spectral-model.js';
+const history=new SpectralHistory(),db=new Float32Array(4096).fill(-Infinity),sr=48000,n=8192;
+db[Math.round(1000*n/sr)]=-20;assert.equal(history.push(db,1,sr,n),true);const peak=history.current.indexOf(Math.max(...history.current));const hz=20*(20000/20)**((peak+.5)/SPECTRAL_BINS);assert.ok(Math.abs(hz-1000)<60,`1kHz maps to ${hz}`);assert.ok(Math.abs(history.current[peak]-(-20-MIN_DB)/(MAX_DB-MIN_DB))<1e-6);assert.equal(history.push(db,1.005,sr,n),false);assert.equal(history.count,1);
+const bins=history.imageColumns(12,360);assert.ok([...bins].filter(i=>i>=0).length<=2,'A single frame must not fabricate 12s of history');
+for(let i=1;i<=40;i++)history.push(db,1+i/30,sr,n);assert.ok(Math.max(...history.density)>0);assert.ok(history.peaks[peak]>.8);
+db.fill(-Infinity);history.push(db,2.4,sr,n);assert.ok(history.current.every(v=>v===0),'Silence must be blank, without idle animation');
+history.clear();assert.equal(history.count,0);assert.ok(history.frames.every(v=>v===0));assert.ok(history.density.every(v=>v===0));assert.ok([...history.imageColumns(12)].every(i=>i===-1));
+db[170]=-30;history.push(db,5,sr,n);history.push(db,8,sr,n);assert.equal(history.count,1,'Reset after inactive gaps instead of stitching unrelated time together');
+for(let i=1;i<1000;i++)history.push(db,8+i/30,sr,n);assert.equal(history.count,900);assert.ok(history.imageColumns(24).every(i=>i>=0&&i<900));
+console.log('Spectral history: measured tone frequency/level, sampling deduplication, timestamps, silence, density, clearing and bounded ring buffer passed.');

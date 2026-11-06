@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+let disconnected=0,connected=0,videoStopped=0,audioStopped=0;
+const videoTrack={stop(){videoStopped++}},audioTrack={stop(){audioStopped++}};
+const engine={async resume(){},ctx:{createMediaStreamDestination(){return{stream:{getAudioTracks:()=>[audioTrack],getTracks:()=>[audioTrack]}}}},masterAnalyser:{connect(){connected++},disconnect(){disconnected++}}};
+globalThis.__testVideoEngine=engine;
+globalThis.MediaStream=class{constructor(tracks){this.tracks=tracks}};
+let supported=['video/mp4','video/webm;codecs=vp9,opus'];
+globalThis.MediaRecorder=class{static isTypeSupported(mime){return supported.includes(mime)}constructor(stream,options){this.mimeType=options.mimeType;this.state='inactive'}start(){this.state='recording'}stop(){this.state='inactive';queueMicrotask(()=>{this.ondataavailable?.({data:new Blob(['video'],{type:this.mimeType})});this.onstop?.()})}};
+const text=(await readFile(new URL('../app/features/visualizer/recorder.js',import.meta.url),'utf8')).replace("import { getEngine } from '../../core/engine.js'",'const getEngine=()=>globalThis.__testVideoEngine;');
+const {pickMime,startVideoRecording,videoExtension}=await import('data:text/javascript;base64,'+Buffer.from(text).toString('base64'));
+assert.equal(pickMime('mp4'),'video/mp4');assert.equal(pickMime('webm'),'video/webm;codecs=vp9,opus');supported=['video/webm;codecs=vp9,opus'];assert.equal(videoExtension(pickMime('mp4')),'webm');
+const canvas={captureStream:()=>({getVideoTracks:()=>[videoTrack],getTracks:()=>[videoTrack]})};
+const recording=await startVideoRecording(canvas,{format:'webm'});const pending=recording.stop();assert.equal(recording.stop(),pending);const blob=await pending;assert.equal(blob.type,'video/webm;codecs=vp9,opus');assert.equal(connected,1);assert.equal(disconnected,1);assert.equal(videoStopped,1);assert.equal(audioStopped,1);
+const Base=globalThis.MediaRecorder;globalThis.MediaRecorder=class extends Base{constructor(){super({},{});throw Error('Encoder unavailable')}};await assert.rejects(()=>startVideoRecording(canvas),/Encoder unavailable/);assert.equal(disconnected,2);assert.equal(videoStopped,2);assert.equal(audioStopped,2);
+console.log('Video recorder: format preference/fallback, true extension, idempotent stop and cleanup on success/failure passed.');

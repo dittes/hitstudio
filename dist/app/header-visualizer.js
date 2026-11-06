@@ -1,0 +1,6 @@
+import { sampleAnalysis } from './features/visualizer/analysis.js';
+export function startHeaderVisualizer(canvas){
+ const button=canvas.parentElement,ctx=canvas.getContext('2d');if(!ctx)return()=>{};let w=1,h=1,dpr=1,raf=0,last=0;
+ const resize=()=>{w=Math.max(1,Math.min(640,button.clientWidth));h=Math.max(1,Math.min(60,button.clientHeight));dpr=Math.min(2,devicePixelRatio||1);canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr)};const ro=new ResizeObserver(resize);ro.observe(button);resize();
+ const loop=now=>{raf=requestAnimationFrame(loop);if(document.hidden||!button.clientWidth||now-last<28)return;last=now;const a=sampleAnalysis();ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);const pad=Math.min(14,w*.12),span=w-pad*2,n=44,bw=span/n;const gradient=ctx.createLinearGradient(0,0,w,0);['#a78bfa','#f472b6','#fb923c','#38bdf8'].forEach((c,i)=>gradient.addColorStop(i/3,c));ctx.fillStyle=gradient;for(let i=0;i<n;i++){const k=Math.abs(i-21.5)/21.5,bi=Math.min(63,Math.floor(k**.9*50)),height=Math.max(2,a.bands[bi]*(h-8));ctx.fillRect(pad+i*bw+bw*.18,(h-height)/2,Math.max(.1,bw*.64),height)}ctx.strokeStyle='#ffffff88';ctx.beginPath();for(let i=0;i<512;i+=4){const x=pad+i/511*span,y=h/2+a.wave[i]*h*.28;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)}ctx.stroke()};raf=requestAnimationFrame(loop);return()=>{cancelAnimationFrame(raf);ro.disconnect()}
+}

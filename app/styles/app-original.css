@@ -1,0 +1,94 @@
+.app {
+  height: 100vh; display: grid;
+  grid-template-columns: var(--rail-w) 1fr;
+  grid-template-rows: var(--topbar-h) 1fr var(--transport-h);
+  grid-template-areas: 'top top' 'rail main' 'trans trans';
+  background: var(--bg);
+}
+/* ── Top bar ── */
+.topbar { grid-area: top; display: flex; align-items: center; gap: 14px; padding: 0 14px; border-bottom: 1px solid var(--border); background: var(--bg-2); }
+.topbar-brand { display: flex; align-items: center; gap: 10px; width: calc(var(--rail-w) + 40px); }
+.logo { width: 30px; height: 30px; border-radius: 10px; background: var(--accent-grad); display: flex; align-items: center; justify-content: center; gap: 3px; box-shadow: 0 4px 14px -4px rgba(244,114,182,.7); }
+.logo span { width: 3px; border-radius: 2px; background: #fff; animation: logo-eq 1.2s ease-in-out infinite; }
+.logo span:nth-child(1) { height: 8px; animation-delay: -.2s; }
+.logo span:nth-child(2) { height: 14px; animation-delay: -.5s; }
+.logo span:nth-child(3) { height: 10px; animation-delay: -.8s; }
+@keyframes logo-eq { 0%,100% { transform: scaleY(.6); } 50% { transform: scaleY(1.15); } }
+.brand-name { font-weight: 750; font-size: 16px; letter-spacing: -.02em; }
+.project-name { background: transparent; border: 1px solid transparent; border-radius: var(--r-md); padding: 6px 10px; font-weight: 600; font-size: 14px; width: 220px; transition: background var(--dur-2), border-color var(--dur-2); }
+.project-name:hover { background: var(--surface); }
+.project-name:focus { outline: none; background: var(--surface); border-color: var(--accent); }
+.topbar-group { display: flex; align-items: center; gap: 4px; }
+.topbar-viz { flex: 1; height: 40px; display: flex; align-items: center; justify-content: center; min-width: 0; }
+.palette-btn { display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 8px 0 10px; border-radius: var(--r-md); border: 1px solid var(--border); background: var(--surface); color: var(--text-3); cursor: pointer; margin-right: 4px; transition: border-color var(--dur-2), color var(--dur-2); }
+.palette-btn:hover { border-color: var(--border-strong); color: var(--text-2); }
+
+/* ── Mode rail ── */
+.rail { grid-area: rail; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 0; border-right: 1px solid var(--border); background: var(--bg-2); }
+.rail-item { position: relative; width: 58px; height: 58px; border: none; background: none; border-radius: var(--r-lg); cursor: pointer; color: var(--text-3); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; transition: color var(--dur-2); }
+.rail-item:hover { color: var(--text); }
+.rail-item.on { color: var(--text); }
+.rail-pill { position: absolute; inset: 0; border-radius: var(--r-lg); background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--border-strong); }
+.rail-pill::before { content: ''; position: absolute; left: -7px; top: 16px; bottom: 16px; width: 3px; border-radius: 3px; background: var(--accent-grad); }
+.rail-icon { position: relative; display: inline-flex; }
+.rail-icon svg { width: 20px; height: 20px; }
+.rail-item.on .rail-icon { color: var(--accent); }
+.rail-label { position: relative; font-size: 10.5px; font-weight: 600; }
+
+/* ── Main ── */
+.app-main { grid-area: main; position: relative; overflow: hidden; min-width: 0; min-height: 0; }
+.app-view { position: absolute; inset: 0; display: flex; flex-direction: column; }
+
+/* ── Transport ── */
+.transport { grid-area: trans; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-top: 1px solid var(--border); background: var(--bg-2); gap: 16px; }
+.transport-left, .transport-mid, .transport-right { display: flex; align-items: center; gap: 8px; }
+.play-btn { width: 44px; height: 44px; border-radius: 50%; border: none; cursor: pointer; display: grid; place-items: center; background: var(--text); color: var(--bg); box-shadow: var(--shadow-sm); transition: background var(--dur-2), box-shadow var(--dur-2); }
+.play-btn svg { width: 18px; height: 18px; }
+.play-btn.on { background: var(--accent-grad); color: #fff; box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent), 0 6px 20px -4px rgba(244,114,182,.6); }
+.rec-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border-strong); background: var(--surface); color: var(--danger); cursor: pointer; display: grid; place-items: center; }
+.rec-btn svg { width: 14px; height: 14px; }
+.rec-btn.on { background: var(--danger); color: #fff; animation: rec-pulse 1.2s infinite; }
+@keyframes rec-pulse { 0% { box-shadow: 0 0 0 0 rgba(248,113,113,.6); } 100% { box-shadow: 0 0 0 12px rgba(248,113,113,0); } }
+.clock { display: flex; flex-direction: column; margin-left: 8px; padding: 4px 12px; border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--border); min-width: 112px; }
+.clock-time { font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
+.clock-bar { font-size: 10.5px; color: var(--text-3); }
+.bpm { display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: 0 10px; height: 34px; }
+.bpm input { width: 44px; border: none; background: none; font-family: var(--mono); font-weight: 600; font-size: 14px; text-align: right; }
+.bpm input:focus { outline: none; }
+.bpm span { font-size: 11px; color: var(--text-3); }
+
+/* ── Drop overlay ── */
+.app-drop { position: fixed; inset: 0; z-index: 400; display: grid; place-items: center; background: color-mix(in srgb, var(--bg) 70%, transparent); backdrop-filter: blur(4px); pointer-events: none; }
+.app-drop-card { padding: 40px 60px; border-radius: var(--r-xl); border: 2px dashed var(--accent); background: var(--surface); text-align: center; display: flex; flex-direction: column; gap: 6px; font-size: 15px; font-weight: 600; box-shadow: var(--glow); }
+.app-drop-icon { font-size: 40px; animation: drop-bob 1s ease-in-out infinite; }
+@keyframes drop-bob { 50% { transform: translateY(-6px) rotate(-8deg); } }
+
+/* ── Toasts ── */
+.toasts { position: fixed; right: 18px; bottom: calc(var(--transport-h) + 14px); z-index: 900; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+.toast { min-width: 220px; max-width: 360px; padding: 10px 14px; border-radius: var(--r-lg); background: var(--surface-2); border: 1px solid var(--border-strong); box-shadow: var(--shadow); cursor: pointer; }
+.toast-title { font-weight: 600; }
+.toast-body { color: var(--text-2); font-size: 12px; margin-top: 2px; }
+.toast-success { border-color: color-mix(in srgb, var(--ok) 50%, transparent); }
+.toast-error { border-color: color-mix(in srgb, var(--danger) 60%, transparent); }
+.toast-celebrate { background: var(--accent-grad); color: #fff; border: none; }
+.toast-celebrate .toast-body { color: rgba(255,255,255,.85); }
+.toast-action { margin-top: 6px; border: none; background: rgba(255,255,255,.12); padding: 4px 10px; border-radius: var(--r-sm); cursor: pointer; font-weight: 600; }
+
+/* ── Palette ── */
+.palette-backdrop { place-items: start center; padding-top: 12vh; }
+.palette { width: 560px; max-width: 92vw; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--r-xl); box-shadow: var(--shadow); overflow: hidden; }
+.palette-input { width: 100%; border: none; background: none; padding: 18px 20px; font-size: 15px; border-bottom: 1px solid var(--border); }
+.palette-input:focus { outline: none; }
+.palette-list { max-height: 50vh; overflow: auto; padding: 6px; }
+.palette-item { position: relative; display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--r-md); cursor: pointer; }
+.palette-hl { position: absolute; inset: 0; border-radius: var(--r-md); background: var(--surface-3); }
+.palette-label, .palette-group, .palette-item kbd { position: relative; }
+.palette-label { flex: 1; font-weight: 550; }
+.palette-group { font-size: 11px; color: var(--text-3); }
+.palette-empty { padding: 20px; text-align: center; }
+
+/* HitStudio wordmark gets room without constraining the project title. */
+.topbar-brand { width: auto; flex-shrink: 0; }
+.project-name { min-width: 0; flex-shrink: 1; }
+
+button.topbar-brand { border: 0; background: transparent; padding: 0; color: inherit; cursor: pointer; text-align: left; }

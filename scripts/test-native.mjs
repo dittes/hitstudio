@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {registerHooks} from 'node:module';
+registerHooks({resolve(specifier,context,next){if(specifier==='immer')return {url:new URL('../vendor/immer.mjs',import.meta.url).href,shortCircuit:true};return next(specifier,context)}});
+const storage=new Map();globalThis.localStorage={getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v)};globalThis.window=globalThis;
+const {useStore,makeTrack,newProject}=await import('../app/core/store.js');
+const {createEdit,useCreate}=await import('../app/features/create/state.js');
+const S=()=>useStore.getState();
+S().mutate('Rename',p=>p.name='Native test');assert.equal(S().project.name,'Native test');S().undo();assert.equal(S().project.name,'Untitled song');S().redo();assert.equal(S().project.name,'Native test');
+S().mutate('Add track',p=>p.tracks.push(makeTrack(p)));assert.equal(S().project.tracks.length,1);assert.equal(S().project.tracks[0].volume,1);S().mutate('Volume',p=>p.tracks[0].volume=.25);assert.equal(S().project.tracks[0].volume,.25);S().undo();assert.equal(S().project.tracks[0].volume,1);
+S().loadProject(newProject());S().mutate('Drag',p=>p.bpm=121,{coalesce:'tempo'});S().mutate('Drag',p=>p.bpm=122,{coalesce:'tempo'});assert.equal(S().past.length,1);S().undo();assert.equal(S().project.bpm,120);
+createEdit(s=>s.drums.long=true);assert.equal(useCreate.getState().drums.long,true);createEdit(s=>s.drums.long=false);assert.equal(useCreate.getState().drums.long,false);createEdit(s=>s.melody.inst='bell');assert.equal(useCreate.getState().melody.inst,'bell');
+const {encodeWav,decodeWav}=await import('../app/features/io/export/wav.js');
+const pcm={sampleRate:48000,channels:[Float32Array.from([0,.25,-.25,.5,-.5,0])]};
+const bytes=new Uint8Array(await encodeWav(pcm,16).arrayBuffer());const decoded=decodeWav(bytes);assert.equal(decoded.sampleRate,48000);assert.equal(decoded.channels[0].length,6);assert.ok(Math.abs(decoded.channels[0][1]-.25)<.0001);
+const {writeZip,readZip}=await import('../app/features/io/export/zip.js');const blob=writeZip([{name:'project.json',data:new TextEncoder().encode('{"app":"hitstudio"}')}]);const entries=await readZip(new Uint8Array(await blob.arrayBuffer()));assert.equal(new TextDecoder().decode(entries.get('project.json')),'{"app":"hitstudio"}');
+const {analyzeSamples}=await import('../app/features/dj/analysis.js');const silence=analyzeSamples([new Float32Array(48000)],48000);assert.equal(silence.duration,1);assert.ok(silence.peak.every(Number.isFinite));
+console.log('Native state/undo, coalescing, pattern settings, WAV round-trip, project ZIP and DJ analysis checks passed.');

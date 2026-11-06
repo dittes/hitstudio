@@ -1,0 +1,6 @@
+HitStudio Freesound starter library
+All bundled sound files are CC0 1.0.
+https://creativecommons.org/publicdomain/zero/1.0/
+Files are the publicly served MP3 preview versions, not lossless originals.
+Full source pages, authors, preview URLs, checksums and verification dates are in manifest.json.
+No Freesound API key or account is required to use the bundled files.

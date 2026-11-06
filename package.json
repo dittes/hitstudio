@@ -1,0 +1,13 @@
+{
+  "name": "hitstudio",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "preview": "node scripts/serve.mjs",
+    "check": "node scripts/check-native.mjs",
+    "test": "node scripts/test-native.mjs && node scripts/test-video-recorder.mjs && node scripts/test-spectral-history.mjs && node scripts/test-render-size.mjs",
+    "build": "node scripts/build-static.mjs"
+  }
+}
