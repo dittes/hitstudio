@@ -10,7 +10,7 @@ import { icon } from '../../dom.js'
 import { DEMO_SETS, demoSetup, FORMS, generateSetup, GENRES, LANES, MOODS, parseSetupCode, rerollPart } from '../../lib/songsmith.js'
 import { BASS_PATTERNS } from './patterns.js'
 import { useCreate } from './state.js'
-import { NOTE_NAMES, SCALES } from './theory.js'
+import { NOTE_NAMES, SCALES, chordFor, midiName } from './theory.js'
 import { INSTRUMENTS } from './synth/instruments.js'
 import { KITS } from './synth/drums.js'
 import { applySetup, songToProject } from './songgen.js'
@@ -48,80 +48,116 @@ registerCommand({
 
 const busyLabel = (b) => (b < 0.25 ? 'Simple' : b < 0.45 ? 'Relaxed' : b < 0.6 ? 'Balanced' : b < 0.8 ? 'Lively' : 'Busy')
 
-/** Mini pattern: 8 drum lanes + melody dots over the loop; columns light up while playing. */
-function previewHTML(d) {
+const LOOP = 64 // four bars of sixteenth notes
+const PART_COLOR = { drums: '#fb923c', melody: '#a78bfa', chords: '#38bdf8', bass: '#4ade80' }
+const chordHue = (i) => `hsl(${i * 47 + 255} 80% 68%)`
+
+/** One-line visual of a part across the 4-bar loop. Each is a button that opens that part in the editor. */
+function drumsVis(d) {
   const steps = d.drums.long ? 32 : 16
-  const cols = 32
   const lanes = LANES.filter((l) => d.drums.grid[l].slice(0, steps).some((v) => v > 0))
-  const drum = lanes
-    .map((l) => `<div class="gp-lane" style="--c:${LANE_COLORS[l]}">${Array.from({ length: cols }, (_, i) => {
+  return `<div class="gv-drums" style="--rows:${Math.max(1, lanes.length)}">${lanes
+    .map((l) => `<div class="gv-dl" style="--c:${LANE_COLORS[l]}">${Array.from({ length: LOOP }, (_, i) => {
       const v = d.drums.grid[l][i % steps]
-      return `<i data-gp-col="${i}" class="${v > 0 ? 'on' : ''}" style="${v > 0 ? `--v:${(0.35 + v * 0.65).toFixed(2)}` : ''}"></i>`
+      return `<i class="${v > 0 ? 'on' : ''}" ${v > 0 ? `style="--v:${(0.4 + v * 0.6).toFixed(2)}"` : ''}></i>`
     }).join('')}</div>`)
-    .join('')
-  const notes = d.melody.notes
-    .map((n) => `<span class="gp-note" style="left:${(n.step / 32) * 100}%;width:${(n.len / 32) * 100}%;bottom:${(n.row / 9) * 80 + 5}%"></span>`)
-    .join('')
-  return `<div class="gp"><div class="gp-drums">${drum}</div><div class="gp-mel">${notes}<div class="gp-head" data-gp-head></div></div></div>`
+    .join('')}</div>`
+}
+function melodyVis(d) {
+  return `<div class="gv-melody">${d.melody.notes
+    .map((n) => [0, 1].map((rep) => `<span class="gv-note" style="left:${((rep * 32 + n.step) / LOOP) * 100}%;width:${(n.len / LOOP) * 100}%;bottom:${(n.row / 9) * 78 + 4}%;--h:${n.row * 28 + 250}"></span>`).join(''))
+    .join('')}</div>`
+}
+function chordsVis(d) {
+  return `<div class="gv-blocks">${[0, 1, 2, 3]
+    .map((i) => {
+      const idx = d.chords.prog[i] ?? 0
+      const c = chordFor(d.key, d.scale, idx)
+      return `<div class="gv-block" data-bar="${i}" style="--c:${chordHue(idx)}"><b>${esc(c.name)}</b><small>${c.roman}</small></div>`
+    })
+    .join('')}</div>`
+}
+function bassVis(d) {
+  const pat = BASS_PATTERNS[d.bass.pattern] ?? BASS_PATTERNS.root8
+  const hits = pat.followKick ? d.drums.grid.kick.slice(0, 16).map((v, s) => (v > 0 ? [s, 1, 0] : null)).filter(Boolean) : pat.hits
+  return `<div class="gv-blocks ${d.bass.on ? '' : 'off'}">${[0, 1, 2, 3]
+    .map((i) => {
+      const c = chordFor(d.key, d.scale, d.chords.prog[i] ?? 0)
+      return `<div class="gv-block gv-bass" data-bar="${i}" style="--c:${PART_COLOR.bass}"><small>${midiName(c.bassMidi)}</small>${hits.map((h) => `<i style="left:${(h[0] / 16) * 100}%;width:${(Math.max(h[1], 1) / 16) * 100}%;bottom:${h[2] ? 52 : 12}%"></i>`).join('')}</div>`
+    })
+    .join('')}</div>`
 }
 
-/** Called by the Create view's step subscription to animate the preview. */
+/** Four part lanes: this is the "your song is made of parts you can adjust" view. */
+function lanesHTML(d, empty) {
+  const defs = [
+    ['drums', 'drum', 'Drums', `${KITS[d.drums.kit]?.name ?? d.drums.kit} kit`, 'beat', drumsVis],
+    ['melody', 'melody', 'Melody', INSTRUMENTS[d.melody.inst]?.name ?? d.melody.inst, 'melody', melodyVis],
+    ['chords', 'piano', 'Chords', `${INSTRUMENTS[d.chords.inst]?.name ?? d.chords.inst} · ${d.chords.style}`, 'chords', chordsVis],
+    ['bass', 'bass', 'Bass', d.bass.on ? `${INSTRUMENTS[d.bass.inst]?.name ?? 'Synth Bass'} · ${BASS_PATTERNS[d.bass.pattern]?.name ?? d.bass.pattern}` : 'Off', 'bass', bassVis],
+  ]
+  return `<div class="gl ${empty ? 'is-empty' : ''}">${defs
+    .map(
+      ([part, ic, name, sub, tab, vis]) => `<div class="gl-lane" style="--pc:${PART_COLOR[part]}">
+      <div class="gl-label"><span class="gl-ic">${icon(ic)}</span><span class="gl-text"><b>${name}</b><small>${esc(sub)}</small></span></div>
+      <button class="gl-vis" ${empty ? 'disabled' : `data-create-tab="${tab}" aria-label="Adjust ${name.toLowerCase()}"`}>${empty ? '<div class="gv-ghost"></div>' : vis(d)}<span class="gl-head" data-gl-head></span><span class="gl-hint">${icon('pen')} Adjust</span></button>
+      <div class="gl-actions"><button class="gen-mini" ${empty ? 'disabled' : `data-gen-reroll="${part}"`} title="New ${name.toLowerCase()} only">${icon('reroll')}<span>Re-roll</span></button></div>
+    </div>`,
+    )
+    .join('')}</div>`
+}
+
+/** Called by the Create view's step subscription to animate the lane playheads. */
 export function highlightGenerateStep(container, step) {
-  const head = container.querySelector('[data-gp-head]')
-  if (!head) return
-  const d = useCreate.getState()
-  const col = step < 0 ? -1 : step % 32
-  head.style.opacity = step < 0 ? '0' : '1'
-  head.style.left = `${(Math.max(0, col) / 32) * 100}%`
-  container.querySelectorAll('.gp i.now').forEach((x) => x.classList.remove('now'))
-  if (col >= 0) container.querySelectorAll(`.gp i[data-gp-col="${col}"]`).forEach((x) => x.classList.add('now'))
-  void d
+  const col = step < 0 ? -1 : step % LOOP
+  container.querySelectorAll('[data-gl-head]').forEach((head) => {
+    head.style.opacity = col < 0 ? '0' : '1'
+    head.style.left = `${(Math.max(0, col) / LOOP) * 100}%`
+  })
+  const bar = col < 0 ? -1 : Math.floor(col / 16)
+  container.querySelectorAll('.gl .gv-block').forEach((x) => x.classList.toggle('now', Number(x.dataset.bar) === bar))
 }
 
-function ideaCard(cur) {
+function resultHTML(cur) {
   const d = useCreate.getState()
   const g = GENRES[cur.genre]
   const m = MOODS[cur.mood]
-  const st = d
   const busy = gen.busy_
-  return `<div class="gen-idea" data-gen-key="${esc(cur.code)}">
-    <div class="gen-idea-head">
-      <div class="gen-idea-art gen-art-${cur.genre}">${icon(g.icon)}</div>
-      <div class="gen-idea-title">
-        <b>${esc(cur.title)}</b>
-        <button class="gen-code" data-gen-copy title="Copy this idea's code">${icon('copy')}<span>${esc(cur.code.split('~')[0])}</span></button>
+  return `<section class="gr" data-gen-key="${esc(cur.code)}">
+    <header class="gr-head">
+      <div class="gr-art gen-art-${cur.genre}">${icon(g.icon)}</div>
+      <div class="gr-title">
+        <span class="gr-eyebrow">Your idea</span>
+        <h2>${esc(cur.title)}</h2>
+        <div class="gen-tags">
+          <span class="gen-tag">${icon(g.icon)}${esc(g.name)}</span>
+          <span class="gen-tag">${icon(m.icon)}${esc(m.name)}</span>
+          <span class="gen-tag">${icon('timer')}${useStore.getState().project.bpm} BPM</span>
+          <span class="gen-tag">${icon('keys')}${NOTE_NAMES[d.key]} ${esc(SCALES[d.scale].name)}</span>
+          <button class="gen-code" data-gen-copy title="Copy this idea's code">${icon('copy')}<span>${esc(cur.code.split('~')[0])}</span></button>
+        </div>
       </div>
-    </div>
-    <div class="gen-tags">
-      <span class="gen-tag">${icon(g.icon)}${esc(g.name)}</span>
-      <span class="gen-tag">${icon(m.icon)}${esc(m.name)}</span>
-      <span class="gen-tag">${icon('timer')}${useStore.getState().project.bpm} BPM</span>
-      <span class="gen-tag">${icon('keys')}${NOTE_NAMES[st.key]} ${esc(SCALES[st.scale].name)}</span>
-    </div>
-    ${previewHTML(d)}
-    <div class="gen-parts">
-      ${[
-        ['drums', 'drum', 'Drums', `${esc(KITS[st.drums.kit]?.name ?? st.drums.kit)} kit`, 'beat'],
-        ['melody', 'melody', 'Melody', esc(INSTRUMENTS[st.melody.inst]?.name ?? st.melody.inst), 'melody'],
-        ['chords', 'piano', 'Chords', `${esc(INSTRUMENTS[st.chords.inst]?.name ?? st.chords.inst)} · ${esc(st.chords.style)}`, 'chords'],
-        ['bass', 'bass', 'Bass', st.bass.on ? `${esc(INSTRUMENTS[st.bass.inst]?.name ?? 'Synth Bass')} · ${esc(BASS_PATTERNS[st.bass.pattern]?.name ?? st.bass.pattern)}` : 'off', 'chords'],
-      ]
-        .map(
-          ([part, ic, name, sub, tab]) => `<div class="gen-part">
-        <span class="gen-part-ic">${icon(ic)}</span>
-        <span class="gen-part-text"><b>${name}</b><small>${sub}</small></span>
-        <button class="gen-mini" data-gen-reroll="${part}" title="New ${name.toLowerCase()} only">${icon('reroll')}</button>
-        <button class="gen-mini" data-create-tab="${tab}" title="Edit ${name.toLowerCase()}">${icon('pen')}</button>
-      </div>`,
-        )
-        .join('')}
-    </div>
-    <button class="gen-adjust" data-create-tab="beat">${icon('pen')}<span>Adjust this idea</span><small>Fine-tune beat, melody &amp; chords</small>${icon('arrow')}</button>
-    <div class="gen-song">
-      <label class="gen-form"><span class="cr-label">Song shape</span><select id="gen-form">${Object.keys(FORMS).map((f) => `<option value="${f}" ${gen.form === f ? 'selected' : ''}>${FORM_LABEL[f]}</option>`).join('')}</select></label>
-      <button class="primary gen-song-btn ${busy === 'song' ? 'busy' : ''}" data-gen-song>${icon(busy === 'song' ? 'reroll' : 'song')}<span>${busy === 'song' ? 'Building your song…' : 'Turn into a full song'}</span></button>
-    </div>
-  </div>`
+      <div class="gr-cta">
+        <button class="gr-adjust" data-create-tab="beat"><span class="gr-adjust-ic">${icon('pen')}</span><span class="gr-adjust-text"><b>Adjust this idea</b></span>${icon('arrow')}</button>
+      </div>
+    </header>
+    ${lanesHTML(d, false)}
+    <footer class="gr-foot">
+      <span class="gr-tip">${icon('lightbulb')}<span>Click any part to edit it, or <b>re-roll</b> just that part until it feels right.</span></span>
+      <label class="gr-form"><span class="cr-label">Song shape</span><select id="gen-form">${Object.keys(FORMS).map((f) => `<option value="${f}" ${gen.form === f ? 'selected' : ''}>${FORM_LABEL[f]}</option>`).join('')}</select></label>
+      <button class="gr-song ${busy === 'song' ? 'busy' : ''}" data-gen-song>${icon(busy === 'song' ? 'reroll' : 'song')}<span>${busy === 'song' ? 'Building your song…' : 'Turn into a full song'}</span></button>
+    </footer>
+  </section>`
+}
+
+function emptyResultHTML() {
+  return `<section class="gr gr-empty">
+    <header class="gr-head">
+      <div class="gr-art gr-art-empty">${icon('sparkles')}</div>
+      <div class="gr-title"><span class="gr-eyebrow">Your idea</span><h2>Press Generate to hear it</h2><p class="muted">HitStudio writes four parts that fit together. Each one stays editable.</p></div>
+    </header>
+    ${lanesHTML(useCreate.getState(), true)}
+  </section>`
 }
 
 export function generateHTML() {
@@ -135,34 +171,37 @@ export function generateHTML() {
   const moods = gen.genre ? GENRES[gen.genre].moods : Object.keys(MOODS)
   const moodChips = [chip('data-gen-mood', '', !gen.mood, 'dice', 'Any mood')].concat(moods.map((id) => chip('data-gen-mood', id, gen.mood === id, MOODS[id].icon, MOODS[id].name))).join('')
   return `<div class="gen-root">
-  <div class="gen-top ${cur ? 'has-idea' : ''}">
-    <section class="gen-hero panel">
-      <div class="gen-hero-text">
+  <section class="gx">
+    <div class="gx-top">
+      <div class="gx-text">
+        <span class="gr-eyebrow">Step 1 · Generate</span>
         <h2>Make something that sounds good — instantly</h2>
-        <p class="muted">Pick a style, press the button and HitStudio writes drums, chords, bass and a melody that fit together. It plays right away, and every part stays editable.</p>
+        <p class="muted">Pick a style and press the button. HitStudio writes drums, chords, bass and a melody that fit together and plays them right away. Then adjust every part until it is yours.</p>
       </div>
+      <div class="gx-go">
+        <button class="gen-go" data-gen-go aria-label="Generate a new idea" title="Generate (G)"><span class="gen-go-spark">${icon('sparkles')}</span><span>${cur ? 'Generate another' : 'Generate'}</span><kbd>G</kbd></button>
+        <div class="gen-code-load"><input id="gen-code-input" class="gen-input" placeholder="Have a code? lofi-chill-7" spellcheck="false" aria-label="Idea code" /><button data-gen-load-code title="Load an idea from its code">${icon('arrow')}</button></div>
+      </div>
+    </div>
+    <div class="gx-controls">
       <div class="gen-row"><span class="cr-label">Style</span><div class="gen-chips">${genreChips}</div></div>
       <div class="gen-row"><span class="cr-label">Mood</span><div class="gen-chips">${moodChips}</div></div>
       <div class="gen-row"><span class="cr-label">Energy</span>
         <div class="gen-busy"><span class="faint">Simple</span><input id="gen-busy" type="range" min="0" max="1" step="0.05" value="${gen.busy}" aria-label="How busy the idea should be"/><span class="faint">Busy</span><b class="gen-busy-val">${busyLabel(gen.busy)}</b></div>
       </div>
-      <div class="gen-actions">
-        <button class="gen-go" data-gen-go aria-label="Generate a new idea" title="Generate (G)"><span class="gen-go-spark">${icon('sparkles')}</span><span>${cur ? 'Generate another' : 'Generate'}</span><kbd>G</kbd></button>
-        <div class="gen-code-load"><input id="gen-code-input" class="gen-input" placeholder="Have a code? lofi-chill-7" spellcheck="false" aria-label="Idea code" /><button data-gen-load-code title="Load an idea from its code">${icon('arrow')}</button></div>
-      </div>
-      ${gen.history.length > 1 ? `<div class="gen-history"><span class="cr-label">${icon('history')} Recent</span>${gen.history.map((h, i) => `<button class="gen-hist ${cur && h.code === cur.code ? 'on' : ''}" data-gen-history="${i}" title="${esc(h.code)}">${icon(GENRES[h.genre]?.icon ?? 'sparkle')}<span>${esc(h.title)}</span></button>`).join('')}</div>` : ''}
-    </section>
-    ${cur ? ideaCard(cur) : `<div class="gen-idea gen-idea-empty"><div class="gen-empty-orb">${icon('sparkles')}</div><b>Your idea appears here</b><span class="muted">Press Generate and listen. When you like it, choose Adjust this idea to fine-tune it, then send it to Edit, Mix, DJ or Export.</span></div>`}
-  </div>
-  <section class="gen-demos">
-    <div class="gen-demos-head"><h3>${icon('song')} Demo songs</h3><span class="muted">Ready-made songs in different styles. Open one as a multi-track song, or load its loop to edit it.</span></div>
-    <div class="gen-demo-grid">${DEMO_SETS.map((dm, i) => {
+      ${gen.history.length > 1 ? `<div class="gen-row"><span class="cr-label">${icon('history')} Recent</span><div class="gen-chips">${gen.history.map((h, i) => `<button class="gen-hist ${cur && h.code === cur.code ? 'on' : ''}" data-gen-history="${i}" title="${esc(h.code)}">${icon(GENRES[h.genre]?.icon ?? 'sparkle')}<span>${esc(h.title)}</span></button>`).join('')}</div></div>` : ''}
+    </div>
+  </section>
+  ${cur ? resultHTML(cur) : emptyResultHTML()}
+  <section class="gd">
+    <div class="gd-head"><h3>${icon('song')} Or start from a demo</h3><span class="muted">Open one as a full song, or load just its loop to adjust.</span></div>
+    <div class="gd-grid">${DEMO_SETS.map((dm, i) => {
       const g = GENRES[dm.genre]
       const m = MOODS[dm.mood]
-      return `<div class="gen-demo" style="--i:${i}">
-        <div class="gen-demo-art gen-art-${dm.genre}">${icon(g.icon)}<span class="gen-demo-eq"><i></i><i></i><i></i><i></i></span></div>
-        <div class="gen-demo-body"><b>${esc(dm.title)}</b><small class="muted">${esc(g.name)} · ${esc(m.name)}</small></div>
-        <div class="gen-demo-actions"><button class="primary ${busy === dm.id ? 'busy' : ''}" data-gen-demo="${dm.id}">${icon(busy === dm.id ? 'reroll' : 'song')}<span>${busy === dm.id ? 'Building…' : 'Open song'}</span></button><button data-gen-demo-loop="${dm.id}" title="Load this demo's loop into the Beat Maker to edit it">${icon('pen')}<span>Edit loop</span></button></div>
+      return `<div class="gd-card" style="--i:${i}">
+        <div class="gd-art gen-art-${dm.genre}">${icon(g.icon)}</div>
+        <div class="gd-body"><b>${esc(dm.title)}</b><small class="muted">${esc(g.name)} · ${esc(m.name)}</small></div>
+        <div class="gd-actions"><button class="${busy === dm.id ? 'busy' : ''}" data-gen-demo="${dm.id}" title="Open as a full song" aria-label="Open ${esc(dm.title)} as a full song">${icon(busy === dm.id ? 'reroll' : 'song')}</button><button data-gen-demo-loop="${dm.id}" title="Load the loop to adjust it" aria-label="Adjust the loop of ${esc(dm.title)}">${icon('pen')}</button></div>
       </div>`
     }).join('')}</div>
   </section>
@@ -176,7 +215,7 @@ function remember(setup) {
 }
 
 function pop(container) {
-  const el = container?.querySelector?.('.gen-idea')
+  const el = container?.querySelector?.('.gr')
   if (el) {
     el.classList.remove('pop')
     void el.offsetWidth

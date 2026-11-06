@@ -121,3 +121,16 @@
 .st-keys span{color:var(--text-2);font-size:13px}
 button.danger{color:#f87171;border-color:color-mix(in srgb,#f87171 40%,var(--border))}
 @media(max-width:760px){.st-root{grid-template-columns:1fr}.st-nav{flex-direction:row;overflow:auto}.st-keys{grid-template-columns:1fr}}
+
+/* ---- rail: imprint link sits just above Library ---- */
+.rail .rail-imprint{margin-top:auto;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;flex:none;width:58px;height:58px;border-radius:var(--r-lg);color:var(--text-3);font-size:10.5px;font-weight:600;text-decoration:none;transition:color .16s}
+.rail .rail-imprint svg{width:20px;height:20px}
+.rail .rail-imprint:hover{color:var(--text)}
+.rail .rail-imprint:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.rail .rail-library{margin-top:0}
+
+/* ---- undo / redo: round, clearly visible ---- */
+.topbar .topbar-group button[data-action=undo],.topbar .topbar-group button[data-action=redo]{display:grid;place-items:center;width:36px;height:36px;padding:0;border-radius:50%;color:var(--text);transition:background .15s,transform .12s,opacity .15s}
+.topbar [data-action=undo] svg,.topbar [data-action=redo] svg{width:20px;height:20px;stroke-width:2.2}
+.topbar .topbar-group button[data-action=undo]:hover:not(:disabled),.topbar .topbar-group button[data-action=redo]:hover:not(:disabled){background:var(--surface-3,var(--surface-2))}
+.topbar [data-action=undo]:disabled,.topbar [data-action=redo]:disabled{opacity:.32;cursor:default}

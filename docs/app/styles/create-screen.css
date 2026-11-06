@@ -1,0 +1,185 @@
+/* Create: Generate screen and the shared "part" layout for Beat / Melody / Chords / Bass. Loaded last. */
+
+/* ============ Generate ============ */
+.gen-root{display:flex;flex-direction:column;gap:18px;width:100%}
+.gr-eyebrow{font-size:11px;font-weight:750;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+
+/* hero: full width */
+.gx{position:relative;overflow:hidden;padding:28px 32px 26px;border-radius:24px;border:1px solid var(--border);background:radial-gradient(90% 140% at 0% 0%,color-mix(in srgb,var(--accent) 16%,var(--surface)) 0%,var(--surface) 55%),var(--surface)}
+.gx::before{content:"";position:absolute;inset:-40% -8% auto auto;width:46%;aspect-ratio:1;border-radius:50%;background:var(--accent-grad);filter:blur(90px);opacity:.16;pointer-events:none}
+.gx>*{position:relative}
+.gx-top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:28px;align-items:end}
+.gx-text h2{margin:6px 0 8px;font-size:clamp(24px,2.6vw,34px);line-height:1.12;letter-spacing:-.03em}
+.gx-text p{margin:0;max-width:640px;line-height:1.55;font-size:14px}
+.gx-go{display:flex;flex-direction:column;align-items:stretch;gap:10px;min-width:300px}
+.gx .gen-go{width:100%;justify-content:center;height:58px;font-size:16px}
+.gx-controls{display:grid;gap:12px;margin-top:22px;padding-top:20px;border-top:1px solid var(--border)}
+.gx-controls .gen-row{display:grid;grid-template-columns:92px minmax(0,1fr);align-items:start;gap:14px}
+.gx-controls .gen-row>.cr-label{padding-top:8px;display:inline-flex;align-items:center;gap:6px}
+.gx-controls .gen-chips{flex-wrap:wrap}
+@media(max-width:1000px){.gx-top{grid-template-columns:1fr}.gx-go{min-width:0}.gx-controls .gen-row{grid-template-columns:1fr;gap:6px}}
+
+/* result card */
+.gr{display:flex;flex-direction:column;gap:0;border-radius:24px;border:1px solid var(--border);background:var(--surface);overflow:hidden}
+.gr.pop{animation:gen-card-pop .55s var(--ease-spring,ease)}
+.gr-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:20px;align-items:center;padding:22px 26px;background:linear-gradient(100deg,color-mix(in srgb,var(--accent) 12%,transparent),transparent 60%)}
+.gr-art{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;color:#fff;box-shadow:0 10px 28px -12px var(--accent-2)}
+.gr-art .ic{width:30px;height:30px}
+.gr-art-empty{background:var(--surface-2);color:var(--text-3);box-shadow:none;border:1px dashed var(--border-strong)}
+.gr-title h2{margin:2px 0 8px;font-size:26px;letter-spacing:-.025em}
+.gr-title p{margin:0}
+.gr-title .gen-tags{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.gr-cta{display:flex}
+.gr-adjust{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;min-width:300px;padding:14px 18px;border:0;border-radius:18px;background:var(--accent-grad);color:#fff;text-align:left;box-shadow:0 12px 30px -12px var(--accent-2);transition:transform .18s,box-shadow .2s,filter .2s}
+.gr-adjust:hover{transform:translateY(-2px);filter:brightness(1.06);background:var(--accent-grad);box-shadow:0 16px 36px -12px var(--accent-2)}
+.gr-adjust-ic{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.22)}
+.gr-adjust-ic .ic,.gr-adjust>.ic{width:20px;height:20px}
+.gr-adjust-text{display:flex;flex-direction:column;gap:2px}
+.gr-adjust-text b{font-size:16px}.gr-adjust-text small{font-size:12px;opacity:.85}
+@media(max-width:1000px){.gr-head{grid-template-columns:auto 1fr}.gr-cta{grid-column:1/-1}.gr-adjust{width:100%}}
+
+/* part lanes */
+.gl{display:flex;flex-direction:column;gap:10px;padding:6px 26px 20px}
+.gl-lane{--pc:var(--accent);display:grid;grid-template-columns:210px minmax(0,1fr) 112px;gap:16px;align-items:stretch}
+.gl-label{display:flex;align-items:center;gap:12px;min-width:0}
+.gl-ic{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:color-mix(in srgb,var(--pc) 20%,transparent);color:var(--pc)}
+.gl-ic .ic{width:20px;height:20px}
+.gl-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.gl-text b{font-size:14.5px}
+.gl-text small{color:var(--text-3);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gl-vis{position:relative;display:block;height:78px;padding:0;overflow:hidden;border-radius:14px;border:1px solid var(--border);background:linear-gradient(var(--surface-2),var(--surface-2)) padding-box;text-align:left;cursor:pointer;transition:border-color .18s,box-shadow .18s,transform .15s}
+.gl-vis:hover:not(:disabled){border-color:var(--pc);box-shadow:0 8px 24px -14px var(--pc);background:var(--surface-2)}
+.gl-vis::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;background:repeating-linear-gradient(90deg,transparent 0,transparent calc(25% - 1px),rgba(255,255,255,.1) calc(25% - 1px),rgba(255,255,255,.1) 25%)}
+.gl-hint{position:absolute;right:8px;top:8px;z-index:4;display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;background:var(--pc);color:#14111c;font-size:11px;font-weight:750;opacity:0;transform:translateY(-4px);transition:opacity .15s,transform .15s}
+.gl-hint .ic{width:12px;height:12px}
+.gl-vis:hover .gl-hint{opacity:1;transform:none}
+.gl-head{position:absolute;top:0;bottom:0;left:0;width:2px;background:#fff;box-shadow:0 0 12px 2px rgba(255,255,255,.7);opacity:0;z-index:3;pointer-events:none}
+.gl-actions{display:flex;align-items:center}
+.gl-actions .gen-mini{width:100%;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:38px;padding:0 12px;border-radius:12px;font-weight:650;font-size:12.5px}
+.gl-actions .gen-mini .ic{width:15px;height:15px}
+.gl-actions .gen-mini:hover:not(:disabled){border-color:var(--pc);color:var(--text)}
+/* drum visual */
+.gv-drums{position:absolute;inset:7px 0;display:grid;grid-template-rows:repeat(var(--rows),1fr);gap:2px}
+.gv-dl{display:grid;grid-template-columns:repeat(64,1fr);gap:1px;padding:0 2px}
+.gv-dl i{border-radius:1.5px;background:rgba(255,255,255,.05)}
+.gv-dl i.on{background:var(--c);opacity:var(--v,1)}
+/* melody visual */
+.gv-melody{position:absolute;inset:0}
+.gv-note{position:absolute;height:7px;border-radius:4px;background:hsl(var(--h) 85% 66%);box-shadow:0 0 10px -2px hsl(var(--h) 90% 60%)}
+/* chord and bass visuals */
+.gv-blocks{position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:7px}
+.gv-block{position:relative;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:1px;padding:0 12px;border-radius:9px;background:color-mix(in srgb,var(--c) 20%,transparent);border:1px solid color-mix(in srgb,var(--c) 35%,transparent);transition:background .12s,border-color .12s}
+.gv-block b{font-size:18px;letter-spacing:-.02em}
+.gv-block small{font-size:11px;font-weight:700;color:var(--c)}
+.gv-block.now{background:color-mix(in srgb,var(--c) 42%,transparent);border-color:var(--c)}
+.gv-bass{overflow:hidden}
+.gv-bass small{position:absolute;left:10px;top:7px;font-size:12px;font-weight:750;z-index:1}
+.gv-bass i{position:absolute;height:8px;border-radius:4px;background:var(--c);opacity:.9}
+.gv-blocks.off{opacity:.3;filter:grayscale(1)}
+/* empty (before the first idea) */
+.gl.is-empty .gl-vis{cursor:default;border-style:dashed;background:transparent}
+.gl.is-empty .gl-vis::before{display:none}
+.gv-ghost{position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0,transparent 14px,rgba(255,255,255,.04) 14px,rgba(255,255,255,.04) 28px)}
+.gl.is-empty .gen-mini{opacity:.4}
+.gr-foot{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:16px 26px;border-top:1px solid var(--border);background:var(--surface-2)}
+.gr-tip{display:inline-flex;align-items:center;gap:10px;flex:1;min-width:240px;color:var(--text-2);font-size:13px}
+.gr-tip .ic{width:16px;height:16px;color:var(--accent);flex:none}
+.gr-tip b{color:var(--text)}
+.gr-form{display:flex;align-items:center;gap:10px}
+.gr-song{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 18px;font-weight:650;border-radius:12px}
+.gr-song .ic{width:16px;height:16px}
+@media(max-width:900px){.gl-lane{grid-template-columns:1fr;gap:8px}.gl-actions .gen-mini{height:34px}}
+
+/* demos: compact */
+.gd-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:6px 2px 10px}
+.gd-head h3{margin:0;font-size:15px;display:inline-flex;align-items:center;gap:8px}
+.gd-head h3 .ic{width:16px;height:16px;color:var(--accent)}
+.gd-head .muted{font-size:12.5px}
+.gd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:8px}
+.gd-card{display:flex;align-items:center;gap:10px;padding:8px 8px 8px 8px;border-radius:14px;border:1px solid var(--border);background:var(--surface);transition:border-color .15s,transform .15s}
+.gd-card:hover{border-color:var(--border-strong);transform:translateY(-1px)}
+.gd-art{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:11px;color:#fff;position:relative}
+.gd-art .ic{width:18px;height:18px}
+.gd-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.gd-body b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gd-body small{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gd-actions{display:flex;gap:4px}
+.gd-actions button{display:grid;place-items:center;width:30px;height:30px;padding:0;border-radius:9px}
+.gd-actions button .ic{width:14px;height:14px}
+
+/* ============ Adjust: one shared layout for all four parts ============ */
+.cr-sub{--pc:var(--accent)}
+.cr-sub.on{background:var(--pc);color:#14111c;box-shadow:0 6px 18px -8px var(--pc)}
+.cr-sub:not(.on) .ic{color:var(--pc)}
+.cr-part{--pc:var(--accent);display:flex;flex-direction:column;border-radius:22px;border:1px solid var(--border);background:var(--surface);overflow:hidden}
+.cr-part-head{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:18px 22px;background:linear-gradient(100deg,color-mix(in srgb,var(--pc) 16%,transparent),transparent 65%);border-bottom:1px solid var(--border)}
+.cr-part-ic{display:grid;place-items:center;width:46px;height:46px;border-radius:14px;background:color-mix(in srgb,var(--pc) 22%,transparent);color:var(--pc)}
+.cr-part-ic .ic{width:22px;height:22px}
+.cr-part-title{flex:1 1 220px;min-width:0}
+.cr-part-title h2{margin:0;font-size:22px;letter-spacing:-.025em}
+.cr-part-title p{margin:2px 0 0;color:var(--text-3);font-size:13px}
+.cr-part-ctl{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.cr-f{display:flex;flex-direction:column;gap:5px;font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3)}
+.cr-f select{min-width:150px;height:38px;text-transform:none;letter-spacing:0;font-weight:550;font-size:13px;color:var(--text)}
+.cr-f input[type=range]{width:130px;height:38px;accent-color:var(--pc)}
+.cr-btn{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 14px;border-radius:11px;font-weight:600;font-size:13px}
+.cr-btn .ic{width:15px;height:15px}
+.cr-btn:hover{border-color:var(--pc)}
+.cr-part-body{padding:20px 22px 22px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.cr-chips{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cr-chip{height:32px;padding:0 14px;border-radius:999px;font-size:12.5px;font-weight:600}
+.cr-chip.on{background:color-mix(in srgb,var(--pc) 22%,var(--surface-2));border-color:var(--pc);color:var(--text)}
+.cr-hint{margin:0;color:var(--text-3);font-size:12.5px}
+.cr-part .beat-scroll{padding:0;border:1px solid var(--border);border-radius:14px;background:var(--bg-2);overflow-x:auto}
+.cr-part .beat-grid{padding:8px 10px 10px;gap:3px;align-items:center;min-width:760px}
+.cr-part .beat-grid .cr-ruler{border:0;background:none;height:18px}
+.cr-part .beat-grid .cr-ruler.bar{border-left:0;color:var(--text)}
+.cr-part .cr-roll-scroll{border-radius:14px}
+.cr-switch{display:inline-flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--text-2);height:38px}
+.cr-switch input{position:absolute;opacity:0;pointer-events:none}
+.cr-switch-track{position:relative;width:42px;height:24px;border-radius:999px;background:var(--surface-3,var(--border-strong));transition:background .2s}
+.cr-switch-track::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}
+.cr-switch input:checked+.cr-switch-track{background:var(--pc)}
+.cr-switch input:checked+.cr-switch-track::after{transform:translateX(18px)}
+.cr-switch input:focus-visible+.cr-switch-track{outline:2px solid var(--pc);outline-offset:2px}
+
+/* bars (chords + bass share it) */
+.cr-part-body .cr-prog{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.cr-part-body .cr-prog.is-off{opacity:.35;filter:grayscale(1)}
+.cr-part-body .cr-slot{--c:var(--accent);position:relative;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:6px;padding:16px;border-radius:18px;border:1px solid color-mix(in srgb,var(--c) 40%,var(--border));background:linear-gradient(160deg,color-mix(in srgb,var(--c) 16%,var(--surface)),var(--surface));transition:transform .2s,box-shadow .2s,border-color .2s}
+.cr-part-body .cr-slot.now{transform:translateY(-3px);border-color:var(--c);box-shadow:0 12px 30px -14px var(--c)}
+.cr-part-body .cr-slot-roman{font-size:13px;font-weight:750;color:var(--c)}
+.cr-part-body .cr-slot-name{font-size:30px;line-height:1.05;letter-spacing:-.03em}
+.cr-part-body .cr-slot select{width:100%}
+.cr-part-body .cr-slot>button{position:absolute;top:14px;right:14px;width:34px;height:34px;display:grid;place-items:center;border-radius:50%;border:0;background:var(--c);color:#16131d;padding:0}
+.cr-part-body .cr-slot>button .ic{width:14px;height:14px;fill:currentColor}
+.cr-bass-slot{min-height:150px}
+.cr-bass-ticks{position:relative;align-self:stretch;flex:1;min-height:44px;margin-top:6px;border-radius:10px;background:rgba(255,255,255,.05);overflow:hidden}
+.cr-bass-ticks i{position:absolute;height:9px;border-radius:5px;background:var(--c)}
+@media(max-width:900px){.cr-part-body .cr-prog{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* genre artwork that was missing */
+.gen-art-rock{background:linear-gradient(135deg,#7f1d1d,#f97316)}
+.gen-art-dubstep{background:linear-gradient(135deg,#1e1b4b,#7c3aed 55%,#22d3ee)}
+
+/* ---- Beat and Melody share one grid look ---- */
+.cr-part .beat-step{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;height:38px}
+.cr-part .beat-step.grp{background:var(--surface-3)}
+.cr-part .beat-step:hover:not(.on){border-color:var(--lane-color,var(--border-strong));background:color-mix(in srgb,var(--lane-color,var(--accent)) 16%,var(--surface-2))}
+.cr-part .beat-step.on{background:linear-gradient(180deg,color-mix(in srgb,var(--lane-color) 80%,white),var(--lane-color));border-color:var(--lane-color);box-shadow:0 0 10px -3px var(--lane-color)}
+.cr-part .beat-step.current{box-shadow:0 0 0 2px #fff6 inset}
+.cr-part .beat-step.on.cont-r{margin-right:-3px;border-top-right-radius:0;border-bottom-right-radius:0;border-right-color:transparent}
+.cr-part .beat-step.on.cont-l{border-top-left-radius:0;border-bottom-left-radius:0;border-left-color:transparent}
+.cr-part .beat-grid .lane-label{display:flex;align-items:center;justify-content:center;height:38px;padding:0 6px;border:0;border-radius:11px;font-weight:700;color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.25);cursor:pointer}
+.cr-part .beat-grid .lane-label.root{box-shadow:0 3px 0 color-mix(in srgb,var(--lane-color) 55%,black),0 0 0 2px color-mix(in srgb,var(--lane-color) 55%,transparent)!important}
+.cr-part .beat-grid .cr-ruler.current{background:color-mix(in srgb,var(--accent) 35%,transparent);border-radius:4px;color:#fff}
+.melody-grid{min-width:1100px!important}
+
+/* ---- bass bar cards are buttons that play the bar ---- */
+button.cr-bass-slot{cursor:pointer;font:inherit;color:inherit;width:100%}
+button.cr-bass-slot:hover{border-color:var(--c);transform:translateY(-2px);box-shadow:0 12px 30px -16px var(--c)}
+button.cr-bass-slot:active{transform:scale(.985)}
+button.cr-bass-slot:focus-visible{outline:2px solid var(--c);outline-offset:2px}
+.cr-slot-play{position:absolute;top:14px;right:14px;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--c);color:#16131d}
+.cr-slot-play .ic{width:14px;height:14px;fill:currentColor}
+.cr-ruler{height:18px;display:flex;align-items:center;padding-left:4px;font-size:10.5px;font-weight:700;color:var(--text-3)}.cr-ruler.bar{color:var(--text)}

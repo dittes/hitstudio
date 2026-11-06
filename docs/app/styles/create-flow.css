@@ -23,7 +23,6 @@
 .cr-sub:hover{color:var(--text)}
 .cr-sub.on{background:var(--accent-grad);color:#fff;box-shadow:0 4px 16px -6px var(--accent-2)}
 .cr-origin{display:inline-flex;align-items:center;gap:8px;color:var(--text-2);font-size:13px;flex:1;min-width:200px}
-.cr-origin .ic{width:15px;height:15px;color:var(--accent)}
 .cr-origin b{color:var(--text)}
 .cr-back{display:inline-flex;align-items:center;gap:7px}.cr-back .ic{width:15px;height:15px}
 
@@ -36,55 +35,12 @@
 .gen-adjust .ic:last-child{grid-column:3}
 
 /* piano roll */
-.cr-roll{padding:14px}
-.cr-roll-tools{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px}
-.cr-roll-tools label{display:flex;align-items:center;gap:8px;color:var(--text-2);font-size:12.5px}
-.cr-roll-tools button{display:inline-flex;align-items:center;gap:6px;margin-left:auto}.cr-roll-tools button .ic{width:14px;height:14px}
-.cr-roll-tip{color:var(--text-3);font-size:12px}
-.cr-roll-scroll{overflow-x:auto;border-radius:12px;border:1px solid var(--border);background:var(--bg-2)}
-.cr-roll-grid{display:grid;grid-template-columns:56px repeat(var(--cols),minmax(26px,1fr));min-width:980px}
-.cr-roll-corner{background:var(--surface);border-bottom:1px solid var(--border)}
-.cr-ruler{height:22px;display:flex;align-items:center;padding-left:4px;font-size:10.5px;font-weight:700;color:var(--text-3);background:var(--surface);border-bottom:1px solid var(--border)}
-.cr-ruler.bar{border-left:2px solid var(--border-strong);color:var(--text)}
 .cr-ruler.current{background:color-mix(in srgb,var(--accent) 35%,var(--surface));color:#fff}
-.cr-key{height:34px;padding:0;border:0;border-bottom:1px solid var(--border);border-right:1px solid var(--border-strong);border-radius:0;background:var(--surface);color:var(--text-2);font-size:12px;cursor:pointer;display:grid;place-items:center;transition:background .12s}
-.cr-key.root{background:color-mix(in srgb,var(--accent) 16%,var(--surface));color:var(--text)}
-.cr-key:hover,.cr-key:active{background:var(--accent-grad);color:#fff}
-.cr-cell{position:relative;height:34px;padding:0;min-width:0;border:0;border-radius:0;border-bottom:1px solid color-mix(in srgb,var(--border) 70%,transparent);border-left:1px solid color-mix(in srgb,var(--border) 45%,transparent);background:transparent;cursor:pointer;transition:background .1s}
-.cr-cell.root{background:color-mix(in srgb,var(--accent) 5%,transparent)}
-.cr-cell.beat{border-left-color:var(--border)}
-.cr-cell.bar{border-left:2px solid var(--border-strong)}
-.cr-cell:hover{background:color-mix(in srgb,var(--accent) 22%,transparent)}
-.cr-cell.current{background:color-mix(in srgb,var(--accent-2) 14%,transparent)}
-.cr-cell.on{background:hsl(var(--hue) 85% 66%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.25),0 0 14px -4px hsl(var(--hue) 90% 60%);border-left-color:transparent;z-index:1;margin:2px 0;height:30px;border-radius:2px}
-.cr-cell.on.start{border-top-left-radius:8px;border-bottom-left-radius:8px;margin-left:2px}
-.cr-cell.on.end{border-top-right-radius:8px;border-bottom-right-radius:8px;margin-right:2px}
-.cr-cell.on.current{filter:brightness(1.25)}
 
 /* chords */
-.cr-chords{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.cr-chord-card{padding:14px 16px}
-.cr-chord-card header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.cr-chord-card header b{font-size:15px}
-.cr-chord-ic{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:color-mix(in srgb,var(--accent-3) 22%,transparent);color:var(--accent-3)}
-.cr-chord-ic.bass{background:color-mix(in srgb,#4ade80 22%,transparent);color:#4ade80}
-.cr-chord-ic .ic{width:16px;height:16px}
-.cr-chord-fields{display:flex;gap:12px;flex-wrap:wrap}
-.cr-chord-fields label{display:flex;flex-direction:column;gap:5px;flex:1;min-width:130px;font-size:11px;font-weight:650;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3)}
-.cr-chord-fields select{text-transform:none;letter-spacing:0;font-weight:500;font-size:13px;color:var(--text)}
-.cr-switch{margin-left:auto;display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text-2);cursor:pointer}
-.cr-prog-panel{grid-column:1/-1;padding:16px}
-.cr-prog-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px}
-.cr-prog-head b{font-size:15px}.cr-prog-head span{color:var(--text-3);font-size:12.5px}
-.cr-prog-panel .cr-prog{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.cr-prog-panel .cr-slot{--c:var(--accent);position:relative;display:flex;flex-direction:column;gap:6px;padding:14px;border-radius:16px;border:1px solid color-mix(in srgb,var(--c) 40%,var(--border));background:linear-gradient(160deg,color-mix(in srgb,var(--c) 16%,var(--surface)),var(--surface));transition:transform .2s,box-shadow .2s,border-color .2s}
-.cr-prog-panel .cr-slot.now{transform:translateY(-3px);border-color:var(--c);box-shadow:0 12px 30px -14px var(--c)}
 .cr-slot-roman{font-size:13px;font-weight:750;color:var(--c)}
-.cr-prog-panel .cr-slot-name{font-size:28px;line-height:1.05;letter-spacing:-.03em}
 .cr-slot-notes{display:flex;gap:5px;flex-wrap:wrap;margin:2px 0 6px}
 .cr-slot-notes i{font-style:normal;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--c) 22%,transparent);color:var(--text)}
-.cr-prog-panel .cr-slot button{position:absolute;top:12px;right:12px;width:32px;height:32px;display:grid;place-items:center;border-radius:50%;border:0;background:var(--c);color:#16131d;padding:0}
-.cr-prog-panel .cr-slot button .ic{width:14px;height:14px;fill:currentColor}
 .cr-pads{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin-top:14px}
 .cr-pads button{--c:var(--accent);display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 4px;border-radius:12px;border:1px solid var(--border);border-bottom:3px solid var(--c);background:var(--surface-2);color:var(--text);cursor:pointer;transition:transform .1s,background .15s}
 .cr-pads button:hover{background:color-mix(in srgb,var(--c) 18%,var(--surface-2))}
@@ -103,9 +59,6 @@
 @media(max-width:900px){.cr-steps{margin-left:0;width:100%;order:9}.cr-chords{grid-template-columns:1fr}.cr-prog-panel .cr-prog{grid-template-columns:repeat(2,minmax(0,1fr))}.cr-finish{border-left:0;padding-left:0;margin-left:0}}
 .cr-finish{flex:1 0 100%;margin:0;padding:12px 0 0;border-left:0;border-top:1px solid var(--border);justify-content:flex-end}
 .cr-finish-head{margin-right:auto}
-.cr-roll,.cr-chord-card,.cr-prog-panel{display:block}
-.cr-key{position:sticky;left:0;z-index:2}
-.cr-prog-panel .cr-slot{align-items:flex-start;text-align:left}.cr-prog-panel .cr-slot select{width:100%}
 
 /* welcome dialog: the colour wash fills the whole box */
 #modal:has(.io-welcome) .modal-inner{padding:0}
@@ -116,3 +69,4 @@
 #modal:has(.io-welcome) .modal-inner{position:relative;overflow:hidden;border-radius:inherit}
 #modal:has(.io-welcome) .modal-head{position:absolute;top:0;right:0;left:0;z-index:3;background:none;border:0;padding:10px 12px;display:flex;justify-content:flex-end}
 .io-welcome{padding-top:48px}
+.cr-origin .ic{width:15px;height:15px;color:var(--accent)}

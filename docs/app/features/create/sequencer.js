@@ -7,6 +7,7 @@ import { KITS, triggerDrum } from './synth/drums.js'
 import { INSTRUMENTS, playNote } from './synth/instruments.js'
 import { configureAll, createBuses, dims, scheduleStep, swingOffset,            } from './synth/mix.js'
 import { chordFor, rowMidi } from './theory.js'
+import { BASS_PATTERNS } from './patterns.js'
 
 export const usePlaying = create                      (() => ({ playing: false }))
 
@@ -127,6 +128,34 @@ export function previewChord(padIndex        , instId         ) {
   const inst = INSTRUMENTS[instId ?? d.chords.inst]
   const chord = chordFor(d.key, d.scale, padIndex)
   chord.midi.forEach((m, i) => playNote(ctx, b.chords .input, inst, m, ctx.currentTime + 0.005 + i * 0.012, Math.max(inst.liveDur, 0.9), 0.7))
+}
+
+/** Play one bar of the bass part: the chosen bass line on that bar's chord root. */
+export function previewBass(bar        ) {
+  const { e, ctx, buses: b } = ensure()
+  void e.resume()
+  syncBuses()
+  const d = useCreate.getState()
+  if (!b.bass || !d.bass.on) return
+  const p = useStore.getState().project
+  const dm = dims(p.timeSig, d.drums.long, p.bpm)
+  const chord = chordFor(d.key, d.scale, d.chords.prog[bar] ?? 0)
+  const pat = BASS_PATTERNS[d.bass.pattern] ?? BASS_PATTERNS.root8
+  let hits = pat.hits
+  if (pat.followKick) {
+    const kick = d.drums.grid.kick
+    const found = []
+    for (let s = 0; s < dm.barSteps; s++) {
+      if (!(kick[s % dm.drumLen] > 0)) continue
+      let len = 1
+      while (len < 8 && s + len < dm.barSteps && !(kick[(s + len) % dm.drumLen] > 0)) len++
+      found.push([s, len, 0])
+    }
+    hits = found
+  }
+  const inst = INSTRUMENTS[d.bass.inst] ?? INSTRUMENTS.bass
+  const t0 = ctx.currentTime + 0.01
+  for (const h of hits) playNote(ctx, b.bass.input, inst, chord.bassMidi + h[2] * 12 + (h[3] ?? 0), t0 + h[0] * dm.stepDur, h[1] * dm.stepDur * 0.9, 0.9, { stepDur: dm.stepDur })
 }
 
 export function sectionActive(s         ) {
