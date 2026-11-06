@@ -22,6 +22,8 @@
     <link rel="stylesheet" href="./app/styles/dj-original.css" />
     <link rel="stylesheet" href="./app/styles/compatibility.css" />
     <link rel="stylesheet" href="./app/styles/generate.css" />
+    <link rel="stylesheet" href="./app/styles/create-flow.css" />
+    <link rel="stylesheet" href="./app/styles/polish.css" />
   </head>
   <body>
     <div id="app">
@@ -30,11 +32,11 @@
         <input id="project-name" class="project-name" aria-label="Project name" value="Untitled song" spellcheck="false" />
         <div class="topbar-group"><button class="icon" data-action="undo" title="Undo (⌘Z)" aria-label="Undo">↶</button><button class="icon" data-action="redo" title="Redo (⌘⇧Z)" aria-label="Redo">↷</button></div>
         <div class="topbar-viz"><button class="vz-mini" data-action="mode:visualize" aria-label="Open the visualizer"><canvas></canvas></button></div>
-        <div class="topbar-group"><button class="palette-btn" data-action="command-palette"><span>Search actions…</span><kbd>⌘K</kbd></button><button class="icon" data-action="theme" aria-label="Light theme" title="Change theme">☼</button><button class="primary" data-action="export">Export</button></div>
+        <div class="topbar-group"><button class="palette-btn" data-action="command-palette"><span>Search actions…</span><kbd>⌘K</kbd></button><button class="icon" data-action="theme" aria-label="Light theme" title="Change theme">☼</button><button class="icon" data-action="settings" aria-label="Settings" title="Settings (⌘,)">⚙</button><button class="icon" data-action="fullscreen" aria-label="Fullscreen" title="Fullscreen"></button><button class="primary" data-action="export">Export</button></div>
       </header>
       <nav class="rail" aria-label="Studio sections"></nav>
       <main id="workspace" tabindex="-1"></main>
-      <aside id="library" aria-label="Music and sound library" hidden></aside>
+      <aside id="library" aria-label="Music library" hidden></aside>
       <footer id="player" aria-label="Music player"></footer>
     </div>
     <dialog id="modal"><div class="modal-inner"></div></dialog>

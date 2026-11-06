@@ -21,7 +21,8 @@ import { getDJ } from './features/dj/engine.js';
 import { detectBpm, detectKeyInfo } from './features/io/analysis.js';
 import { mountVisualize } from './visualize.js';
 import { mountStudio, studioAction, splitSelection, deleteSelection, duplicateSelection, copySelection, pasteSelection } from './studio.js';
-import { showLibrary, hideLibrary, toggleLibrary, renderLibrary, loadSounds } from './library.js';
+import { showSettings } from './settings.js';
+import { showLibrary, hideLibrary, toggleLibrary, renderLibrary } from './library.js';
 import { welcome, showModal, closeModal, showSongMenu, showEffects, showEffectParams, showProcesses, showProcess, showExport, showRecord } from './dialogs.js';
 import * as music from './media.js';
 
@@ -35,8 +36,8 @@ const updateTips=()=>document.documentElement.dataset.dismissedTips=[...dismisse
 const actions={effects:showEffects,effectParams:showEffectParams,songMenu:showSongMenu,pickAudio:multiple=>pickFiles({multiple})};
 const safe=fn=>async(...args)=>{try{await fn(...args)}catch(error){console.error(error);toast({title:'That action could not finish',body:error.message||String(error),kind:'error'})}};
 function setImmersive(value){immersive=value;app.classList.toggle('immersive',value);updateImmersiveButton();view?.resize?.();view?.poke?.()}
-function updateFullscreenButton(){const b=workspace.querySelector('[data-action=fullscreen]');if(b){const active=!!document.fullscreenElement||fullscreenRequested;b.setAttribute('aria-label',active?'Exit fullscreen':'Fullscreen');b.title=active?'Exit fullscreen':'Fullscreen';b.innerHTML=icon(active?'shrink':'expand')}}
-function updateImmersiveButton(){updateFullscreenButton();const b=workspace.querySelector('[data-action=immersive]');if(b){b.innerHTML=icon(immersive?'shrink':'expand');b.setAttribute('aria-label',immersive?'Back to studio':'Enter immersive view');b.title=immersive?'Back to studio (Esc)':'Enter immersive view'}}
+function updateFullscreenButton(){const active=!!document.fullscreenElement||fullscreenRequested;document.querySelectorAll('[data-action=fullscreen]').forEach(b=>{b.setAttribute('aria-label',active?'Exit fullscreen':'Fullscreen');b.title=active?'Exit fullscreen':'Fullscreen';b.innerHTML=icon(active?'minimize':'maximize')})}
+function updateImmersiveButton(){updateFullscreenButton();const b=workspace.querySelector('[data-action=immersive]');if(b){b.innerHTML=icon(immersive?'eye-off':'eye');b.setAttribute('aria-label',immersive?'Back to studio':'Enter immersive view');b.title=immersive?'Back to studio (Esc)':'Enter immersive view'}}
 function renderView(){
  cancelAnimationFrame(renderPending);renderPending=0;
  const mode=useStore.getState().ui.mode;
@@ -53,14 +54,14 @@ function renderView(){
 }
 function scheduleRender(){if(!renderPending)renderPending=requestAnimationFrame(renderView)}
 $('.rail').innerHTML=modes.map(([id,label])=>`<button data-mode="${id}" aria-label="${label}">${icon(id)}<span>${label}</span></button>`).join('')+`<button class="rail-library" data-action="library" aria-label="Song list">${icon('library')}<span>Library</span></button>`;
-player.innerHTML=`<button class="player-lift" data-action="library" aria-label="Slide up to open library" aria-expanded="false" aria-controls="library"><span></span></button><div class="player-info"><select id="audio-source" aria-label="Audio source"><option value="queue">Song list</option><option value="studio">Studio mix</option><option value="create">Beat Maker</option><option value="dj">DJ decks</option><option value="radio" disabled>Live radio</option><option value="preview" disabled>Sound preview</option><option value="jingle" disabled>Welcome ident</option></select><strong id="now-playing">Choose your next song</strong></div><div class="player-controls"><button class="icon" data-action="shuffle" aria-label="Shuffle" title="Shuffle">${icon('shuffle')}</button><button class="icon" data-action="previous" aria-label="Previous song">${icon('previous')}</button><button class="main-play icon" data-action="play" aria-label="Play">${icon('play')}</button><button class="icon" data-action="next" aria-label="Next song">${icon('next')}</button><button class="icon" data-action="repeat" aria-label="Repeat song" title="Repeat song">${icon('repeat')}</button></div><div class="player-progress"><span class="time" id="elapsed">0:00</span><input id="seek" type="range" min="0" max="1" step=".01" value="0" aria-label="Song position"/><span class="time" id="duration">0:00</span></div><label class="volume">${icon('volume')}<input id="master-volume" type="range" min="0" max="1" step=".01" value="1" aria-label="Master volume"/></label><div class="player-right"><button class="icon" data-action="library" aria-label="Song list" title="Song list">${icon('library')}</button><button class="icon" data-action="stop-all" aria-label="Stop all audio" title="Stop all audio">${icon('stop')}</button></div>`;
+player.innerHTML=`<button class="player-lift" data-action="library" aria-label="Slide up to open library" aria-expanded="false" aria-controls="library"><span></span></button><div class="player-info"><select id="audio-source" aria-label="Audio source"><option value="queue">Song list</option><option value="studio">Studio mix</option><option value="create">Beat Maker</option><option value="dj">DJ decks</option><option value="radio" disabled>Live radio</option><option value="jingle" disabled>Welcome ident</option></select><strong id="now-playing">Choose your next song</strong></div><div class="player-controls"><button class="icon" data-action="shuffle" aria-label="Shuffle" title="Shuffle">${icon('shuffle')}</button><button class="icon" data-action="previous" aria-label="Previous song">${icon('previous')}</button><button class="main-play icon" data-action="play" aria-label="Play">${icon('play')}</button><button class="icon" data-action="next" aria-label="Next song">${icon('next')}</button><button class="icon" data-action="repeat" aria-label="Repeat song" title="Repeat song">${icon('repeat')}</button></div><div class="player-progress"><span class="time" id="elapsed">0:00</span><input id="seek" type="range" min="0" max="1" step=".01" value="0" aria-label="Song position"/><span class="time" id="duration">0:00</span></div><label class="volume">${icon('volume')}<input id="master-volume" type="range" min="0" max="1" step=".01" value="1" aria-label="Master volume"/></label><div class="player-right"><button class="icon" data-action="library" aria-label="Song list" title="Song list">${icon('library')}</button><button class="icon" data-action="stop-all" aria-label="Stop all audio" title="Stop all audio">${icon('stop')}</button></div>`;
 function time(value){value=Math.max(0,Number(value)||0);return `${Math.floor(value/60)}:${String(Math.floor(value%60)).padStart(2,'0')}`}
 function updatePlayer(){
  const S=useStore.getState(),source=music.source(),playing=music.isPlaying();
  $('#now-playing').textContent=music.isBusy()?'Loading…':music.nowPlaying();$('#audio-source').value=source;
  const play=$('[data-action=play]',player);play.innerHTML=icon(playing?'pause':'play');play.setAttribute('aria-label',playing?'Pause':'Play');
- const duration=source==='studio'?projectDuration(S.project):['queue','preview','jingle'].includes(source)?music.currentDuration():0;
- const position=source==='studio'?S.transport.position:['queue','preview','jingle'].includes(source)?music.media.currentTime:0;
+ const duration=source==='studio'?projectDuration(S.project):['queue','jingle'].includes(source)?music.currentDuration():0;
+ const position=source==='studio'?S.transport.position:['queue','jingle'].includes(source)?music.media.currentTime:0;
  const seek=$('#seek');seek.disabled=!duration;if(document.activeElement!==seek){seek.max=Math.max(1,duration);seek.value=Math.max(0,Math.min(duration,position))}
  $('#elapsed').textContent=source==='radio'?'LIVE':time(position);$('#duration').textContent=duration?time(duration):'—';
  if(document.activeElement!==$('#master-volume'))$('#master-volume').value=Math.min(1,S.project.master.volume);
@@ -99,14 +100,16 @@ const runAction=safe(async action=>{
  if(action==='restore-project'){music.stopAll();if(await restoreAutosave()){closeModal();useStore.getState().setMode('edit');await music.setSource('studio');toast('Project restored.')}else toast('This session could not be restored.')}
  if(action==='add-songs')await addFilesToSongs();
  if(action==='add-demos'){music.addDemoSongs();renderLibrary()}
+ if(action==='settings'){showSettings();return}
  if(action==='library')toggleLibrary(library,actions);
+ if(action==='library-radio')showLibrary(library,actions,'radio');
  if(action==='close-library')hideLibrary();
  if(action==='restore-tips'){dismissedTips.clear();localStorage.setItem('hitstudio.dismissedTips','[]');updateTips();toast('Tips shown again.')} 
  if(action==='play'){if(useStore.getState().ui.mode==='create'&&music.source()!=='create')await music.setSource('create');if(music.source()==='queue'&&!music.songs.length){showLibrary(library,actions,'songs');toast('Add a song, or choose a studio source.')}else await music.togglePlayback()}
  if(action==='previous')await music.nextSong(-1);if(action==='next')await music.nextSong(1);
  if(action==='shuffle')music.setShuffle();if(action==='repeat')music.setRepeat();if(action==='stop-all')music.stopAll();
  if(action==='immersive')setImmersive(!immersive);
- if(action==='fullscreen'){if(document.fullscreenElement||fullscreenRequested){fullscreenRequested=false;if(document.fullscreenElement)await document.exitFullscreen();setImmersive(fullscreenPreviousImmersive)}else{fullscreenPreviousImmersive=immersive;fullscreenRequested=true;setImmersive(true);try{await document.documentElement.requestFullscreen();view?.resize?.()}catch(error){fullscreenRequested=false;setImmersive(fullscreenPreviousImmersive);throw error}}updateFullscreenButton()}
+ if(action==='fullscreen'){if(document.fullscreenElement||fullscreenRequested){fullscreenRequested=false;if(document.fullscreenElement)await document.exitFullscreen();setImmersive(fullscreenPreviousImmersive)}else{fullscreenPreviousImmersive=immersive;fullscreenRequested=true;if(useStore.getState().ui.mode==='visualize')setImmersive(true);try{await document.documentElement.requestFullscreen();view?.resize?.()}catch(error){fullscreenRequested=false;setImmersive(fullscreenPreviousImmersive);throw error}}updateFullscreenButton()}
  if(action==='record-video')await view?.toggleRecording?.();
  if(action==='undo')useStore.getState().undo();if(action==='redo')useStore.getState().redo();
  if(action==='import-project'){closeModal();const files=await pickFiles();if(files.length){music.stopAll();await importFiles(files);await music.setSource('studio');useStore.getState().setMode('edit')}}
@@ -115,7 +118,7 @@ const runAction=safe(async action=>{
  if(action==='export')showExport();
  if(action==='theme'){const S=useStore.getState();S.setUI({theme:S.ui.theme==='dark'?'light':'dark'});document.documentElement.dataset.theme=S.ui.theme;const b=$('[data-action=theme]');b.setAttribute('aria-label',S.ui.theme==='dark'?'Light theme':'Dark theme')}
  if(action.startsWith('task:')){music.stopAll();void music.setSource('studio');await quickTask(action.split(':')[1])}
- if(action==='command-palette'){showModal('Search actions',`<input id="action-search" placeholder="Search actions…" aria-label="Search actions" style="width:100%;margin-bottom:16px"/><div class="effect-list" id="action-results"></div>`);const list=[['New track','add-track'],['Save project','save-project'],['Open project','open-project'],['Export audio','export'],['Show welcome screen','welcome'],['Show tips','restore-tips'],['Add songs','add-songs'],['Find BPM & key','analyze'],...modes.map(([id,label])=>['Go to '+label,'mode:'+id]),...PROCESSES.map(p=>[p.label,'process:'+p.id])];const render=()=>{$('#action-results').innerHTML=list.filter(([label])=>label.toLowerCase().includes($('#action-search').value.toLowerCase())).map(([label,a])=>`<button data-command-action="${a}">${escape(label)}</button>`).join('');$$('[data-command-action]').forEach(b=>b.onclick=()=>{closeModal();if(b.dataset.commandAction.startsWith('process:'))showProcess(b.dataset.commandAction.split(':')[1]);else void runAction(b.dataset.commandAction)})};$('#action-search').oninput=render;render();$('#action-search').focus()}
+ if(action==='command-palette'){showModal('Search actions',`<input id="action-search" placeholder="Search actions…" aria-label="Search actions" style="width:100%;margin-bottom:16px"/><div class="effect-list" id="action-results"></div>`);const list=[['New track','add-track'],['Save project','save-project'],['Open project','open-project'],['Export audio','export'],['Settings','settings'],['Show welcome screen','welcome'],['Show tips','restore-tips'],['Add songs','add-songs'],['Find BPM & key','analyze'],...modes.map(([id,label])=>['Go to '+label,'mode:'+id]),...PROCESSES.map(p=>[p.label,'process:'+p.id])];const render=()=>{$('#action-results').innerHTML=list.filter(([label])=>label.toLowerCase().includes($('#action-search').value.toLowerCase())).map(([label,a])=>`<button data-command-action="${a}">${escape(label)}</button>`).join('');$$('[data-command-action]').forEach(b=>b.onclick=()=>{closeModal();if(b.dataset.commandAction.startsWith('process:'))showProcess(b.dataset.commandAction.split(':')[1]);else void runAction(b.dataset.commandAction)})};$('#action-search').oninput=render;render();$('#action-search').focus()}
 if(action==='process-picker')showProcesses();
  if(action==='demo'){closeModal();music.stopAll();await loadDemoSong();await music.setSource('studio')}
  if(action==='record'){useStore.getState().setMode('edit');if(isRecording())await stopRecording();else showRecord()}
@@ -130,7 +133,7 @@ window.addEventListener('keydown',e=>{
  if(isTextTarget(e.target)||$('#modal').open)return;
  if(e.target.closest('.player-lift')&&(e.code==='Space'||e.key==='Enter'))return;
  const mod=e.metaKey||e.ctrlKey,key=e.key.toLowerCase();
- if(mod&&key==='k'){e.preventDefault();void runAction('command-palette');return}
+ if(mod&&key===','){e.preventDefault();showSettings();return}if(mod&&key==='k'){e.preventDefault();void runAction('command-palette');return}
  if(e.shiftKey&&e.code==='Space'&&useStore.getState().ui.mode==='create'){e.preventDefault();void runAction('create-play');return}
  if(mod&&key==='z'){e.preventDefault();void runAction(e.shiftKey?'redo':'undo');return}
  if(mod&&key==='s'){e.preventDefault();void runAction('save-project');return}
@@ -159,7 +162,7 @@ document.addEventListener('drop',safe(async e=>{if(!e.target.closest?.('#workspa
 const initialMode=location.hash.slice(1);useStore.getState().setMode(modes.some(m=>m[0]===initialMode)?initialMode:'edit');
 if(!view)renderView();
 await music.restoreSongs();music.addDemoSongs();
-try{await loadSounds()}catch(error){toast(String(error))}
+
 startAutosave();updatePlayer();
 document.documentElement.dataset.theme=useStore.getState().ui.theme;
 startHeaderVisualizer($('.vz-mini canvas'));
@@ -172,3 +175,5 @@ let liftStart=null,suppressLiftClickUntil=0;
 player.addEventListener('pointerdown',e=>{if(e.button!==0||e.target.closest('input,select,button:not(.player-lift)'))return;liftStart={x:e.clientX,y:e.clientY}});
 window.addEventListener('pointerup',e=>{if(!liftStart)return;const dy=e.clientY-liftStart.y,dx=e.clientX-liftStart.x;liftStart=null;if(Math.abs(dy)<35||Math.abs(dy)<Math.abs(dx))return;suppressLiftClickUntil=performance.now()+400;if(dy<0)showLibrary(library,actions);else hideLibrary()});
 window.addEventListener('pointercancel',()=>liftStart=null);
+updateFullscreenButton();
+document.querySelector('.topbar [data-action=settings]').innerHTML=icon('settings');

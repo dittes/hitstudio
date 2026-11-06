@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HitStudio — Make music. Feel it.</title>
+    <meta name="description" content="Make beats, edit audio, mix songs and watch your music come alive. HitStudio is a private, browser-based music studio with immersive visuals." />
+    <meta name="theme-color" content="#0c0c10" />
+    <link rel="canonical" href="https://hitstudio.org/" />
+    <meta property="og:title" content="HitStudio — Make music. Feel it." />
+    <meta property="og:description" content="Your music. Your studio. An immersive space to create, mix and visualize sound." />
+    <meta property="og:url" content="https://hitstudio.org/" />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="stylesheet" href="./app/styles.css" />
+    <link rel="stylesheet" href="./app/styles/global.css" />
+    <link rel="stylesheet" href="./app/styles/kit-original.css" />
+    <link rel="stylesheet" href="./app/styles/app-original.css" />
+    <link rel="stylesheet" href="./app/styles/io-original.css" />
+    <link rel="stylesheet" href="./app/styles/create-original.css" />
+    <link rel="stylesheet" href="./app/styles/mixer-original.css" />
+    <link rel="stylesheet" href="./app/styles/dj-original.css" />
+    <link rel="stylesheet" href="./app/styles/compatibility.css" />
+    <link rel="stylesheet" href="./app/styles/generate.css" />
+    <link rel="stylesheet" href="./app/styles/create-flow.css" />
+    <link rel="stylesheet" href="./app/styles/polish.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <button class="topbar-brand brand" data-action="welcome" aria-label="HitStudio home"><div class="logo"><span></span><span></span><span></span></div><span class="brand-name">HitStudio</span></button>
+        <input id="project-name" class="project-name" aria-label="Project name" value="Untitled song" spellcheck="false" />
+        <div class="topbar-group"><button class="icon" data-action="undo" title="Undo (⌘Z)" aria-label="Undo">↶</button><button class="icon" data-action="redo" title="Redo (⌘⇧Z)" aria-label="Redo">↷</button></div>
+        <div class="topbar-viz"><button class="vz-mini" data-action="mode:visualize" aria-label="Open the visualizer"><canvas></canvas></button></div>
+        <div class="topbar-group"><button class="palette-btn" data-action="command-palette"><span>Search actions…</span><kbd>⌘K</kbd></button><button class="icon" data-action="theme" aria-label="Light theme" title="Change theme">☼</button><button class="icon" data-action="settings" aria-label="Settings" title="Settings (⌘,)">⚙</button><button class="icon" data-action="fullscreen" aria-label="Fullscreen" title="Fullscreen"></button><button class="primary" data-action="export">Export</button></div>
+      </header>
+      <nav class="rail" aria-label="Studio sections"></nav>
+      <main id="workspace" tabindex="-1"></main>
+      <aside id="library" aria-label="Music library" hidden></aside>
+      <footer id="player" aria-label="Music player"></footer>
+    </div>
+    <dialog id="modal"><div class="modal-inner"></div></dialog>
+    <div id="toasts" aria-live="polite"></div>
+    <script type="importmap">{"imports":{"immer":"./vendor/immer.mjs","three":"./vendor/three/three.module.js","three/examples/jsm/":"./vendor/three/addons/","@breezystack/lamejs":"./vendor/lamejs.js"}}</script>
+    <script type="module" src="./app/main.js"></script>
+  </body>
+</html>

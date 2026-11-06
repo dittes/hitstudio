@@ -116,6 +116,7 @@ function ideaCard(cur) {
         )
         .join('')}
     </div>
+    <button class="gen-adjust" data-create-tab="beat">${icon('pen')}<span>Adjust this idea</span><small>Fine-tune beat, melody &amp; chords</small>${icon('arrow')}</button>
     <div class="gen-song">
       <label class="gen-form"><span class="cr-label">Song shape</span><select id="gen-form">${Object.keys(FORMS).map((f) => `<option value="${f}" ${gen.form === f ? 'selected' : ''}>${FORM_LABEL[f]}</option>`).join('')}</select></label>
       <button class="primary gen-song-btn ${busy === 'song' ? 'busy' : ''}" data-gen-song>${icon(busy === 'song' ? 'reroll' : 'song')}<span>${busy === 'song' ? 'Building your song…' : 'Turn into a full song'}</span></button>
@@ -151,7 +152,7 @@ export function generateHTML() {
       </div>
       ${gen.history.length > 1 ? `<div class="gen-history"><span class="cr-label">${icon('history')} Recent</span>${gen.history.map((h, i) => `<button class="gen-hist ${cur && h.code === cur.code ? 'on' : ''}" data-gen-history="${i}" title="${esc(h.code)}">${icon(GENRES[h.genre]?.icon ?? 'sparkle')}<span>${esc(h.title)}</span></button>`).join('')}</div>` : ''}
     </section>
-    ${cur ? ideaCard(cur) : `<div class="gen-idea gen-idea-empty"><div class="gen-empty-orb">${icon('sparkles')}</div><b>Your idea appears here</b><span class="muted">Press Generate. You can re-roll single parts, open them in the editors, or turn the loop into a full song.</span></div>`}
+    ${cur ? ideaCard(cur) : `<div class="gen-idea gen-idea-empty"><div class="gen-empty-orb">${icon('sparkles')}</div><b>Your idea appears here</b><span class="muted">Press Generate and listen. When you like it, choose Adjust this idea to fine-tune it, then send it to Edit, Mix, DJ or Export.</span></div>`}
   </div>
   <section class="gen-demos">
     <div class="gen-demos-head"><h3>${icon('song')} Demo songs</h3><span class="muted">Ready-made songs in different styles. Open one as a multi-track song, or load its loop to edit it.</span></div>

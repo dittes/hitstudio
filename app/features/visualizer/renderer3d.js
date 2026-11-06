@@ -109,7 +109,8 @@ export function startWebGLVisualizer(
         const dt = Math.min(0.05, Math.max(0.0005, (now - prev) / 1000))
         prev = now
         const L = read()
-        ctx.time += dt
+        const sp = Math.max(0.1, L.speed ?? 1)
+        ctx.time += dt * sp
         const raw = sampleAnalysis()
         scaleAnalysis(raw, scaled, L.sens)
 
@@ -127,9 +128,9 @@ export function startWebGLVisualizer(
         }
         if (fadeElement) fadeElement.style.opacity = fade < 0.004 ? '0' : fade.toFixed(3)
 
-        ambient.update(dt,scaled,ctx,!scenes[curIdx]?.analysis);
+        ambient.update(dt*sp,scaled,ctx,!scenes[curIdx]?.analysis&&L.particles!==false);
         ctx.settings=L;
-        cur?.update(dt, scaled, ctx)
+        cur?.update(dt * sp, scaled, ctx)
 
         // camera rig easing
         const ck = firstFrame ? 1 : 1 - Math.exp(-dt * 2.4)
@@ -144,7 +145,7 @@ export function startWebGLVisualizer(
 
         if (fx && !scenes[curIdx]?.analysis) {
           const s = Math.min(1.6, L.sens)
-          fx.bloom.strength = (0.28 + scaled.energy * 0.25 + scaled.kick * 0.3) * (0.6 + 0.4 * s)
+          fx.bloom.strength = (0.28 + scaled.energy * 0.25 + scaled.kick * 0.3) * (0.6 + 0.4 * s) * (L.glow ?? 1)
           fx.bloom.radius = 0.55 + scaled.bass * 0.25
           fx.bloom.threshold = 0.55
           fx.render(dt)

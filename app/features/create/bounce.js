@@ -67,3 +67,29 @@ export async function bounceToSong(bars        )                  {
   })
   return results.length
 }
+
+/** Mix every active section into one stereo loop (used to hand the idea to a DJ deck). */
+export async function renderLoopMix(bars) {
+  const secs = activeSections()
+  if (!secs.length) return null
+  const parts = []
+  for (const sec of secs) parts.push(await renderSection(sec, bars))
+  const len = Math.max(...parts.map((b) => b.length))
+  const out = buffers.create(2, len, parts[0].sampleRate)
+  let peak = 0
+  const mixed = [0, 1].map((c) => {
+    const dst = new Float32Array(len)
+    for (const b of parts) {
+      const src = b.getChannelData(c)
+      for (let i = 0; i < src.length; i++) dst[i] += src[i]
+    }
+    for (let i = 0; i < len; i++) peak = Math.max(peak, Math.abs(dst[i]))
+    return dst
+  })
+  const gain = peak > 0.95 ? 0.95 / peak : 1
+  mixed.forEach((dst, c) => {
+    if (gain !== 1) for (let i = 0; i < len; i++) dst[i] *= gain
+    out.copyToChannel(dst, c)
+  })
+  return out
+}

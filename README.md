@@ -6,11 +6,11 @@ A private browser music studio for hitstudio.org, implemented in plain HTML, CSS
 
 Serve this folder with any static HTTP server, or use `npm run dev` / `node scripts/serve.mjs` and open http://localhost:5199. No installation is needed. ES modules require HTTP; double-clicking index.html through file:// is not supported. HTTPS (or localhost) is required for microphone access and some browser encoders.
 
-`npm run check` validates the native module graph. `npm run build` copies the upload-ready site into dist/. Upload the contents of dist/ to your static host, with JavaScript served as JavaScript. There is no application backend, remote API key or build step required on the host.
+`npm run check` validates the native module graph. `npm run build` copies the upload-ready site into docs/. Upload the contents of docs/ to your static host, with JavaScript served as JavaScript. There is no application backend, remote API key or build step required on the host.
 
 ## Studio
 
-The sidebar contains Create, Edit, Mix, DJ, Tools, then Visualize. Tools contains the quick tasks formerly shown in the welcome dialog. Lift the player bar with its handle (or swipe it upward) to open songs, bundled CC0 sounds, and a direct radio-stream input underneath. Swipe down or press the handle again to close it. Local song files are stored in IndexedDB on this browser; original demo songs are synthesized locally. Add a library song to the timeline explicitly to edit or export it.
+The sidebar contains Create, Edit, Mix, DJ, Tools, then Visualize. Tools contains the quick tasks formerly shown in the welcome dialog. Lift the player bar with its handle (or swipe it upward) to open songs and live radio, and a direct radio-stream input underneath. Swipe down or press the handle again to close it. Local song files are stored in IndexedDB on this browser; original demo songs are synthesized locally. Add a library song to the timeline explicitly to edit or export it.
 
 Entering Beat Maker stops normal playback and selects the beat source. Tips can be dismissed and restored through Search actions → Show tips. Section switching has a quiet 90ms sound, excluded from recorded music.
 

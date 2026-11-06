@@ -13,7 +13,7 @@ import { encodeWav } from './features/io/export/wav.js';
 export const media = new Audio();
 media.preload = 'metadata';
 let mediaNode = null, active = 'queue', current = -1, busy = false, loadToken = 0;
-let previewId = null, titleOverride = '', repeat = false, shuffle = false;
+let titleOverride = '', repeat = false, shuffle = false;
 export const songs = [];
 const listeners = new Set();
 const notify = () => listeners.forEach(fn => fn());
@@ -74,7 +74,7 @@ export function stopAll() {
   loadToken++;busy=false;media.pause();
   try{getEngine().pause()}catch{}
   stopSeq();const dj=peekDJ();if(dj){dj.cancelAuto();dj.decks.forEach(d=>d.pause());if(dj.recording)dj.stopRecording()}
-  previewId=null;notify();
+  notify();
 }
 export async function claimSource(next) {
   stopAll();active=next;titleOverride='';
@@ -98,7 +98,6 @@ export function nowPlaying() {
 }
 export function currentDuration() { return Number.isFinite(media.duration)?media.duration:0 }
 export function isBusy(){return busy}
-export function previewing(){return previewId}
 export async function playSong(index) {
   const item=songs[index];if(!item)return;
   await claimSource('queue');const token=loadToken;current=index;busy=true;notify();
@@ -127,22 +126,10 @@ export async function togglePlayback() {
     if(current<0||!media.src||media.ended)await playSong(current<0?0:current);
     else{const token=loadToken;await getEngine().resume();if(token===loadToken)await media.play()}
   } else if(active==='radio'){await getEngine().resume();await media.play()}
-  else if(active==='preview'){await getEngine().resume();media.currentTime=0;await media.play()}
   else await playSong(current<0?0:current);
   notify();
 }
 export async function setSource(next){await claimSource(next)}
-export async function playSound(item){
-  if(previewId===item.id&&!media.paused){media.pause();previewId=null;notify();return}
-  await claimSource('preview');previewId=item.id;titleOverride=item.name;
-  media.crossOrigin='anonymous';media.src=new URL('../'+item.file,import.meta.url).href;media.load();await media.play();notify();
-}
-export async function addSoundToProject(item){
-  const response=await fetch(new URL('../'+item.file,import.meta.url));if(!response.ok)throw Error('Sound file unavailable');
-  const entry=await buffers.decode(await response.arrayBuffer(),item.name);
-  const S=useStore.getState();S.mutate('Add library sound',p=>{const track=makeTrack(p,{name:item.name});p.tracks.push(track);p.clips.push(makeClip({trackId:track.id,bufferId:entry.id,duration:entry.buffer.duration,start:S.transport.position,name:item.name}))});
-  toast(`Added ${item.name} to the timeline.`);
-}
 export async function songToProject(id){
   const item=songs.find(s=>s.id===id);if(!item)return;
   let data;if(item.file)data=await item.file.arrayBuffer();else {if(!item.url){const b=await item.get();item.url=URL.createObjectURL(encodeWav(audioBufferToPcm(b),16))}data=await (await fetch(item.url)).arrayBuffer()}
@@ -158,7 +145,6 @@ export async function welcomeSound(){const expected=loadToken+1;await claimSourc
 media.addEventListener('ended',()=>{
   if(active==='queue'){if(repeat){media.currentTime=0;void media.play().catch(()=>{})}else if(shuffle||current<songs.length-1)void nextSong()}
   else if(active==='jingle'){active='queue';titleOverride='';media.removeAttribute('src');media.load()}
-  else if(active==='preview')previewId=null;
   notify();
 });
 for(const event of ['play','pause','loadedmetadata','waiting','playing'])media.addEventListener(event,notify);
@@ -166,9 +152,10 @@ media.addEventListener('error',()=>{if(media.src){toast(active==='radio'?'This s
 
 /** One opening ident. Autoplay restrictions fall back to the first non-playback gesture. */
 export function openingChime(){
+ if(localStorage.getItem('hitstudio.chime')==='0')return;
  let done=false;
  let pendingToken=loadToken;
- const playbackTarget=target=>!!target?.closest?.('[data-song-play],[data-sound-preview],[data-action="play"],[data-action="record"],[data-action="create-play"],[data-dj-play],#audio-source,#seek');
+ const playbackTarget=target=>!!target?.closest?.('[data-song-play],[data-action="play"],[data-action="record"],[data-action="create-play"],[data-dj-play],#audio-source,#seek');
  const attempt=async gesture=>{
   if(done)return;
   if(loadToken!==pendingToken){done=true;remove();return}
@@ -187,6 +174,7 @@ export function openingChime(){
 let sectionVoice=null;
 export async function sectionSound(){
  try{
+  if(localStorage.getItem('hitstudio.uisounds')==='0')return;
   const ctx=getEngine().ctx;
   if(ctx.state!=='running')return;
   sectionVoice?.stop();

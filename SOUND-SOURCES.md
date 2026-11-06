@@ -10,13 +10,13 @@ Section switching uses an original 90ms quiet synthesized accent. It plays throu
 
 Opening playback has no enter-with-sound/enter-quietly buttons. The app attempts autoplay; browser autoplay policy may require a first user interaction. Explicit music playback cancels a pending ident. The ident is not inserted into the arrangement.
 
-## Bundled Freesound library
+## Live radio
 
-Eleven locally bundled sounds are public high-quality MP3 **preview versions**, not the uploaders’ lossless originals. Each actual Freesound source page linked CC0 1.0 at acquisition. assets/sounds/manifest.json records creator, source page, CC0 link, public preview URL, edition, checked date and SHA-256 checksum. assets/sounds/LICENSES.txt retains the source list.
+The library offers a short, curated list of stations that publish a free public listener stream: Radio Paradise (four channels), KEXP 90.3 and dublab. HitStudio plays each stream directly from the station's own server. It does not record, download, re-stream or cache the audio, and each station card links to the station's website. The visualizer only analyses what is playing. The custom-stream field is for streams the user is allowed to listen to.
 
-CC0 reference: https://creativecommons.org/publicdomain/zero/1.0/ . It permits reuse and redistribution under its terms; it does not establish that an uploader owns every third-party right. These files do not require a Freesound login or API key at runtime. Playback and timeline imports use the bundled copies.
+Whether a given jurisdiction treats linking to a public stream as needing a licence is not settled law (the UK TuneIn case is the best-known example, and it turned largely on recording and on directory-style services). Before any public launch, ask each station for written permission or confirm their terms, and consider legal advice. Nothing has been confirmed with the stations yet.
 
-The library includes kicks, snares, claps, hi-hat texture, a synth pad, outdoor/night ambience and a stream recording. Source links remain visible beside the sounds. Other Freesound licenses are not included by default.
+The former bundled CC0 Freesound pack has been removed.
 
 ## Runtime library notices
 

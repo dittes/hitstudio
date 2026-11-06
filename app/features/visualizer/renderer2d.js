@@ -34,7 +34,7 @@ export function startCanvasVisualizer(canvas                   , root           
     const settings = read()
     scaleAnalysis(sampleAnalysis(), analysis, settings.sens)
     const a = analysis
-    if (!reducedMotion.matches) time += dt
+    if (!reducedMotion.matches) time += dt * Math.max(0.1, settings.speed ?? 1)
     const colors = (PALETTES[settings.palette] ?? PALETTES.bloom).colors
     const color = (i        ) => colors[((i % 4) + 4) % 4]
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
@@ -53,7 +53,7 @@ export function startCanvasVisualizer(canvas                   , root           
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
 
-    if(settings.want>=6){drawExtraScene(ctx,EXTRA_SCENES[settings.want-6].id,a,w,h,time,colors,extraState,settings);if(!EXTRA_SCENES[settings.want-6].analysis)drawAmbientParticles(ctx,w,h,time,a,colors);return}
+    if(settings.want>=6){drawExtraScene(ctx,EXTRA_SCENES[settings.want-6].id,a,w,h,time,colors,extraState,settings);if(!EXTRA_SCENES[settings.want-6].analysis&&settings.particles!==false)drawAmbientParticles(ctx,w,h,time,a,colors);return}
     switch (settings.want) {
       case 0: terrain(ctx, a, history, w, h, colors); break
       case 1: {
@@ -142,7 +142,7 @@ export function startCanvasVisualizer(canvas                   , root           
         }
       }
     }
-    drawAmbientParticles(ctx,w,h,time,a,colors);
+    if(settings.particles!==false)drawAmbientParticles(ctx,w,h,time,a,colors);
     ctx.globalAlpha = 1
   }
   raf = requestAnimationFrame(draw)
