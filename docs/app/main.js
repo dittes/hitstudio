@@ -20,7 +20,9 @@ import { useDJ } from './features/dj/state.js';
 import { getDJ } from './features/dj/engine.js';
 import { detectBpm, detectKeyInfo } from './features/io/analysis.js';
 import { mountVisualize } from './visualize.js';
+import { mountEq, resetEq } from './features/eq/screen.js';
 import { mountStudio, studioAction, splitSelection, deleteSelection, duplicateSelection, copySelection, pasteSelection } from './studio.js';
+import { createUndo, createRedo, useCreateHistory } from './features/create/state.js';
 import { showSettings } from './settings.js';
 import { showLibrary, hideLibrary, toggleLibrary, renderLibrary } from './library.js';
 import { welcome, showModal, closeModal, showSongMenu, showEffects, showEffectParams, showProcesses, showProcess, showExport, showRecord } from './dialogs.js';
@@ -28,7 +30,7 @@ import * as music from './media.js';
 
 const app=$('#app'),library=$('#library'),player=$('#player');
 let workspace=$('#workspace');
-const modes=[['create','Create'],['edit','Edit'],['mix','Mix'],['dj','DJ'],['tools','Tools'],['visualize','Visualize']];
+const modes=[['create','Create'],['edit','Edit'],['mix','Mix'],['eq','EQ'],['dj','DJ'],['tools','Tools'],['visualize','Visualize']];
 let fullscreenPreviousImmersive=false,fullscreenRequested=false;
 let view=null,renderPending=0,immersive=false,previousMode=null,bootReady=false;
 const dismissedTips=new Set((()=>{try{const value=JSON.parse(localStorage.getItem('hitstudio.dismissedTips')||'[]');return Array.isArray(value)?value:[]}catch{return []}})());
@@ -45,9 +47,8 @@ function renderView(){
  // Replacing the native subtree releases all DOM listeners; DSP engines persist.
  const fresh=document.createElement('main');fresh.id='workspace';fresh.tabIndex=-1;workspace.replaceWith(fresh);workspace=fresh;
  if(mode!=='visualize'&&immersive)setImmersive(false);
- $$('.rail [data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
- const mount=mode==='visualize'?mountVisualize:mountStudio;
- if(mode==='visualize')view=mount(workspace,actions);else view=mount(mode,workspace,actions);
+ $$('.rail [data-mode]').forEach(b=>{const on=b.dataset.mode===mode;b.classList.toggle('active',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
+ if(mode==='visualize')view=mountVisualize(workspace,actions);else if(mode==='eq')view=mountEq(workspace);else view=mountStudio(mode,workspace,actions);
  updateImmersiveButton();
  if(location.hash!=='#'+mode)history.replaceState(null,'','#'+mode);
  if(previousMode!==mode){previousMode=mode;$('#project-name').value=useStore.getState().project.name}
@@ -66,16 +67,18 @@ function updatePlayer(){
  $('#elapsed').textContent=source==='radio'?'LIVE':time(position);$('#duration').textContent=duration?time(duration):'—';
  if(document.activeElement!==$('#master-volume'))$('#master-volume').value=Math.min(1,S.project.master.volume);
  $('[data-action=shuffle]',player).setAttribute('aria-pressed',String(music.settings().shuffle));$('[data-action=repeat]',player).setAttribute('aria-pressed',String(music.settings().repeat));
- $('[data-action=undo]').disabled=S.past.length===0;$('[data-action=redo]').disabled=S.future.length===0;
+ {const ch=useCreateHistory.getState(),inCreate=S.ui.mode==='create';$('[data-action=undo]').disabled=inCreate?ch.past===0:S.past.length===0;$('[data-action=redo]').disabled=inCreate?ch.future===0:S.future.length===0}
  const record=workspace.querySelector('[data-action=record]');if(record){record.classList.toggle('active',isRecording());record.title=isRecording()?'Stop recording':'Record microphone'}
 }
 $('#seek').addEventListener('input',e=>{if(music.source()==='studio')getEngine().seek(Number(e.target.value));else if(music.currentDuration())music.media.currentTime=Number(e.target.value)});
 $('#audio-source').addEventListener('change',safe(async e=>{await music.setSource(e.target.value);updatePlayer()}));
 $('#master-volume').addEventListener('input',e=>useStore.getState().mutate('Master volume',p=>{p.master.volume=Number(e.target.value)},{coalesce:'master-volume'}));
 $('#project-name').addEventListener('change',e=>useStore.getState().mutate('Rename project',p=>{p.name=e.target.value||'Untitled song'}));
+function syncTheme(){const t=useStore.getState().ui.theme,b=$('[data-action=theme]'),label=t==='dark'?'Switch to light theme':'Switch to dark theme';document.documentElement.dataset.theme=t;if(b){b.setAttribute('aria-label',label);b.title=label;b.textContent=t==='dark'?'☼':'☾'}}
 useStore.subscribe((s,prev)=>{
+ if(s.ui.theme!==prev.ui.theme)syncTheme();
  if(s.ui.mode!==prev.ui.mode){if(s.ui.mode==='create'){music.stopAll();void music.setSource('create')}if(bootReady)void music.sectionSound();if(s.ui.mode==='visualize')s.setTransport({metronome:false});renderView()}
- else if(s.project!==prev.project&&s.ui.mode!=='visualize')scheduleRender();
+ else if(s.project!==prev.project&&s.ui.mode!=='visualize'){if(!view?.onProject?.(s.project,prev.project))scheduleRender()}
  else if(s.ui.zoom!==prev.ui.zoom||s.ui.snap!==prev.ui.snap)scheduleRender();
  if(s.project.name!==prev.project.name&&document.activeElement!==$('#project-name'))$('#project-name').value=s.project.name;
  updatePlayer();
@@ -91,6 +94,7 @@ useProcDialog.subscribe((s,prev)=>{if(s.open&&s.open!==prev.open)showProcess(s.o
 async function addFilesToSongs(){const files=await pickFiles();if(files.length){await music.addSongs(files);showLibrary(library,actions,'songs');toast(`Added ${files.length} file${files.length===1?'':'s'} to your song list.`)}}
 const runAction=safe(async action=>{
  if(action.startsWith('mode:')){useStore.getState().setMode(action.split(':')[1]);return}
+ if(action==='eq-reset'){resetEq();return}
  if(action==='welcome')await welcome(actions);
  if(action==='close-modal')closeModal();
  if(action==='welcome-listen'){music.stopAll();useStore.getState().setMode('visualize');setImmersive(true);closeModal();showLibrary(library,actions,'songs')}
@@ -111,12 +115,12 @@ const runAction=safe(async action=>{
  if(action==='immersive')setImmersive(!immersive);
  if(action==='fullscreen'){if(document.fullscreenElement||fullscreenRequested){fullscreenRequested=false;if(document.fullscreenElement)await document.exitFullscreen();setImmersive(fullscreenPreviousImmersive)}else{fullscreenPreviousImmersive=immersive;fullscreenRequested=true;if(useStore.getState().ui.mode==='visualize')setImmersive(true);try{await document.documentElement.requestFullscreen();view?.resize?.()}catch(error){fullscreenRequested=false;setImmersive(fullscreenPreviousImmersive);throw error}}updateFullscreenButton()}
  if(action==='record-video')await view?.toggleRecording?.();
- if(action==='undo')useStore.getState().undo();if(action==='redo')useStore.getState().redo();
+ if(action==='undo'||action==='redo'){if(useStore.getState().ui.mode==='create'){action==='undo'?createUndo():createRedo()}else action==='undo'?useStore.getState().undo():useStore.getState().redo()}
  if(action==='import-project'){closeModal();const files=await pickFiles();if(files.length){music.stopAll();await importFiles(files);await music.setSource('studio');useStore.getState().setMode('edit')}}
  if(action==='save-project')await saveProjectFile();
  if(action==='open-project'){const files=await pickFiles({multiple:false,accept:'.hitstudio,.bloom,application/zip'});if(files[0]){music.stopAll();await openProjectFile(files[0]);await music.setSource('studio')}}
  if(action==='export')showExport();
- if(action==='theme'){const S=useStore.getState();S.setUI({theme:S.ui.theme==='dark'?'light':'dark'});document.documentElement.dataset.theme=S.ui.theme;const b=$('[data-action=theme]');b.setAttribute('aria-label',S.ui.theme==='dark'?'Light theme':'Dark theme')}
+ if(action==='theme'){useStore.getState().setUI({theme:useStore.getState().ui.theme==='dark'?'light':'dark'});syncTheme()}
  if(action.startsWith('task:')){music.stopAll();void music.setSource('studio');await quickTask(action.split(':')[1])}
  if(action==='command-palette'){showModal('Search actions',`<input id="action-search" placeholder="Search actions…" aria-label="Search actions" style="width:100%;margin-bottom:16px"/><div class="effect-list" id="action-results"></div>`);const list=[['New track','add-track'],['Save project','save-project'],['Open project','open-project'],['Export audio','export'],['Settings','settings'],['Show welcome screen','welcome'],['Show tips','restore-tips'],['Add songs','add-songs'],['Find BPM & key','analyze'],...modes.map(([id,label])=>['Go to '+label,'mode:'+id]),...PROCESSES.map(p=>[p.label,'process:'+p.id])];const render=()=>{$('#action-results').innerHTML=list.filter(([label])=>label.toLowerCase().includes($('#action-search').value.toLowerCase())).map(([label,a])=>`<button data-command-action="${a}">${escape(label)}</button>`).join('');$$('[data-command-action]').forEach(b=>b.onclick=()=>{closeModal();if(b.dataset.commandAction.startsWith('process:'))showProcess(b.dataset.commandAction.split(':')[1]);else void runAction(b.dataset.commandAction)})};$('#action-search').oninput=render;render();$('#action-search').focus()}
 if(action==='process-picker')showProcesses();
@@ -140,7 +144,7 @@ window.addEventListener('keydown',e=>{
  if(mod&&key==='o'){e.preventDefault();void runAction('open-project');return}
  if(mod&&key==='e'){e.preventDefault();void runAction('export');return}
  if(mod&&key==='i'){e.preventDefault();void runAction('import-project');return}
- if(mod&&/^[1-6]$/.test(key)){e.preventDefault();useStore.getState().setMode(modes[Number(key)-1][0]);return}
+ if(mod&&/^[1-7]$/.test(key)){e.preventDefault();useStore.getState().setMode(modes[Number(key)-1][0]);return}
  if(e.code==='Space'){e.preventDefault();void runAction('play');return}
  if(useStore.getState().ui.mode==='create'&&!mod&&!e.repeat){const i=['a','s','d','f','g','h','j','k'].indexOf(key);if(i>=0){e.preventDefault();void (async()=>{if(music.source()!=='create')await music.claimSource('create');previewMelodyRow(i)})();return}}
  if(useStore.getState().ui.mode==='dj'&&!mod&&!e.repeat){const map={z:[0,'toggle'],n:[1,'toggle'],x:[0,'cue'],b:[1,'cue'],c:[0,'sync'],v:[1,'sync']};if(key==='t'){e.preventDefault();void runAction('dj-transition');return}if(map[key]){e.preventDefault();const [i,method]=map[key];void (async()=>{if(music.source()!=='dj')await music.claimSource('dj');const d=getDJ().decks[i];if(method==='cue'){d.cueDown();d.cueUp()}else if(method==='sync')d.syncNow();else d.toggle()})();return}}
@@ -164,7 +168,7 @@ if(!view)renderView();
 await music.restoreSongs();music.addDemoSongs();
 
 startAutosave();updatePlayer();
-document.documentElement.dataset.theme=useStore.getState().ui.theme;
+syncTheme();
 startHeaderVisualizer($('.vz-mini canvas'));
 registerCommand({id:'io.analyze',label:'Find BPM & key',run:()=>void runAction('analyze')});
 bootReady=true;

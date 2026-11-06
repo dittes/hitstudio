@@ -126,7 +126,7 @@ export function previewChord(padIndex        , instId         ) {
   syncBuses()
   const d = useCreate.getState()
   const inst = INSTRUMENTS[instId ?? d.chords.inst]
-  const chord = chordFor(d.key, d.scale, padIndex)
+  const chord = chordFor(d.key, d.scale, padIndex, d.chords.ext ?? 'triad')
   chord.midi.forEach((m, i) => playNote(ctx, b.chords .input, inst, m, ctx.currentTime + 0.005 + i * 0.012, Math.max(inst.liveDur, 0.9), 0.7))
 }
 

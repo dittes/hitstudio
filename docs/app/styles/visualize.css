@@ -1,0 +1,80 @@
+/* ── Visualize: one compact scene bar + a Customize panel ─────────────────────
+   The stage is always dark (the section carries data-theme="dark"). */
+
+/* controls fade away while music plays and the mouse is still */
+.viz-top,.viz-dock{transition:opacity .4s ease}
+.viz.auto-hidden .viz-top,.viz.auto-hidden .viz-dock{opacity:0;pointer-events:none}
+.viz.auto-hidden{cursor:none}
+
+/* smaller start card: title, one line, three actions */
+.viz-hint>.tl-empty-card{width:min(560px,100%);padding:28px 30px 26px}
+.viz-hint .tl-empty-title{font-size:24px}
+
+/* scene bar */
+.viz-dock{padding:14px 20px 18px;gap:0;background:linear-gradient(transparent,rgba(6,5,11,.8))}
+.viz-bar{display:flex;align-items:center;gap:4px;padding:5px;border-radius:var(--r-full);background:rgba(18,18,24,.62);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.09);box-shadow:0 12px 32px -14px rgba(0,0,0,.75)}
+.viz .viz-bar button{height:40px;border:0;border-radius:var(--r-full);background:transparent;color:#d6d2e6}
+.viz .viz-bar .icon{width:40px;padding:0;display:grid;place-items:center}
+.viz .viz-bar .icon .ic{width:18px;height:18px}
+.viz .viz-bar-scene{min-width:176px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0 16px;line-height:1.15}
+.viz-bar-family{font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:#9a96b2;font-weight:700}
+.viz-bar-name{font-size:14px;font-weight:700;color:#fff;white-space:nowrap}
+.viz-bar-sep{width:1px;height:22px;background:rgba(255,255,255,.12);margin:0 4px}
+.viz .viz-bar-toggle{display:inline-flex;align-items:center;gap:7px;padding:0 14px;font-size:12.5px;font-weight:600}
+.viz-bar-toggle .ic{width:16px;height:16px}
+.viz .viz-bar-toggle[aria-pressed=true],.viz .viz-bar-toggle[aria-expanded=true]{background:color-mix(in srgb,var(--accent) 30%,transparent);color:#fff;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 65%,transparent)}
+
+/* Customize panel */
+.viz-panel{position:absolute;top:12px;right:12px;bottom:12px;width:min(360px,calc(100% - 24px));z-index:5;display:flex;flex-direction:column;gap:20px;padding:16px 18px;overflow-y:auto;overscroll-behavior:contain;border-radius:20px;background:rgba(14,13,22,.88);backdrop-filter:blur(22px) saturate(1.2);-webkit-backdrop-filter:blur(22px) saturate(1.2);border:1px solid rgba(255,255,255,.1);box-shadow:0 30px 80px -20px rgba(0,0,0,.85);animation:viz-panel-in .22s var(--ease-out,ease-out)}
+.viz-panel[hidden]{display:none}
+@keyframes viz-panel-in{from{opacity:0;transform:translateX(18px)}}
+.viz-panel-head{display:flex;align-items:center;justify-content:space-between}
+.viz-panel-head h2{font-size:16px;font-weight:750;margin:0}
+.viz .viz-panel-head .icon{width:34px;height:34px;padding:0;display:grid;place-items:center;border:0}
+.viz-panel-sec h3,.viz-advanced summary{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#9a96b2;font-weight:700;margin:0 0 10px}
+.viz-families{display:flex;gap:4px;margin-bottom:12px}
+.viz .viz-families button{flex:1 1 auto;min-width:0;height:30px;padding:0 6px;border-radius:var(--r-full);font-size:11.5px;font-weight:600;border:1px solid rgba(255,255,255,.1);color:#cfcbe0}
+.viz .viz-families [aria-selected=true]{background:#fff;color:#141320;border-color:#fff}
+.viz-scene-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.viz-scene-grid[hidden]{display:none}
+.viz .viz-panel .scene-art{height:64px;display:block}
+.viz .viz-panel .scene-card span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.viz-note{font-size:11px;color:#8e8ba6;margin:8px 0 0}
+.viz .viz-panel .palettes{gap:10px;flex-wrap:wrap}
+.viz .viz-panel .palette{width:30px;height:30px;min-width:30px;max-width:30px;flex:0 0 30px}
+.viz-panel input[type=range]{width:100%;accent-color:var(--accent)}
+.viz-range-ends{display:flex;justify-content:space-between;font-size:11px;color:#8e8ba6;margin-top:2px}
+.viz-advanced summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px;margin:0}
+.viz-advanced summary::-webkit-details-marker{display:none}
+.viz-advanced summary::before{content:'';width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg);transition:transform .2s}
+.viz-advanced[open] summary::before{transform:rotate(45deg)}
+.viz-adv-grid{display:grid;gap:10px;margin-top:12px;font-size:12px;color:#cfcbe0}
+.viz-adv-grid label{display:grid;grid-template-columns:84px minmax(0,1fr);align-items:center;gap:10px}
+.viz-adv-grid label.opt-check{display:flex;align-items:center;gap:8px}
+.viz-adv-grid label[hidden]{display:none}
+.viz-adv-grid select{font-size:12px;padding:6px 9px;background:#14131d}
+.viz .viz-adv-grid button{justify-self:start;font-size:12px;padding:7px 12px}
+.viz:not(.viz-analysis) .viz-analysis-only,.viz.viz-analysis .viz-scene-only{display:none}
+.viz-panel-foot{margin-top:auto;display:grid;gap:8px;justify-items:start;font-size:11px;color:#8e8ba6;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)}
+.viz-panel-foot p{margin:0}
+.viz-panel-foot kbd{display:inline-block;min-width:18px;padding:1px 5px;margin-right:2px;border-radius:5px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#d6d2e6;font:600 10px/1.5 var(--font);text-align:center}
+.viz .viz-panel-foot button.link{background:none;border:0;padding:0;height:auto;color:var(--accent);font-size:11px;font-weight:600;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.viz .viz-panel-foot button.link:hover{background:none!important;box-shadow:none!important;color:#fff}
+.viz-mode:empty{display:none}
+
+/* Galaxy card: warm bulge inside a tilted disk */
+.viz .scene-art.art-particles{background:radial-gradient(circle at 50% 52%,#fff4de 0 3%,#ffd3a088 8%,transparent 20%),radial-gradient(ellipse 46% 26% at 50% 52%,#c9b8ff55,#8a6fd022 55%,transparent 75%),radial-gradient(circle at 18% 30%,#fff 0 1px,transparent 1.5px),radial-gradient(circle at 82% 70%,#fff 0 1px,transparent 1.5px),#07060c}
+
+/* keep the scene bar clear of the panel */
+@media(min-width:900px){.viz.panel-open .viz-dock,.viz.panel-open .viz-hint{padding-right:392px}}
+@media(max-width:899px){.viz.panel-open .viz-dock{opacity:0;pointer-events:none}}
+
+@media(max-width:700px){
+  .viz .viz-bar-toggle span{display:none}
+  .viz .viz-bar-toggle{padding:0 12px}
+  .viz .viz-bar-scene{min-width:0;flex:1;padding:0 8px}
+  .viz-bar{max-width:100%}
+  .viz-panel{top:8px;right:8px;bottom:8px;width:calc(100% - 16px)}
+}
+@media(hover:none){.viz-keys-hint{display:none}}
+@media(prefers-reduced-motion:reduce){.viz-panel{animation:none}.viz-top,.viz-dock{transition:none}}

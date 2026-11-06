@@ -13,11 +13,11 @@
 .gx-text p{margin:0;max-width:640px;line-height:1.55;font-size:14px}
 .gx-go{display:flex;flex-direction:column;align-items:stretch;gap:10px;min-width:300px}
 .gx .gen-go{width:100%;justify-content:center;height:58px;font-size:16px}
-.gx-controls{display:grid;gap:12px;margin-top:22px;padding-top:20px;border-top:1px solid var(--border)}
+.gx-controls{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin-top:22px;padding-top:20px;border-top:1px solid var(--border)}
 .gx-controls .gen-row{display:grid;grid-template-columns:92px minmax(0,1fr);align-items:start;gap:14px}
 .gx-controls .gen-row>.cr-label{padding-top:8px;display:inline-flex;align-items:center;gap:6px}
 .gx-controls .gen-chips{flex-wrap:wrap}
-@media(max-width:1000px){.gx-top{grid-template-columns:1fr}.gx-go{min-width:0}.gx-controls .gen-row{grid-template-columns:1fr;gap:6px}}
+@media(max-width:1000px){.gx-top{grid-template-columns:1fr}.gx-go{min-width:0}.gx-controls .gen-row{grid-template-columns:minmax(0,1fr);gap:6px}}
 
 /* result card */
 .gr{display:flex;flex-direction:column;gap:0;border-radius:24px;border:1px solid var(--border);background:var(--surface);overflow:hidden}
@@ -183,3 +183,66 @@ button.cr-bass-slot:focus-visible{outline:2px solid var(--c);outline-offset:2px}
 .cr-slot-play{position:absolute;top:14px;right:14px;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--c);color:#16131d}
 .cr-slot-play .ic{width:14px;height:14px;fill:currentColor}
 .cr-ruler{height:18px;display:flex;align-items:center;padding-left:4px;font-size:10.5px;font-weight:700;color:var(--text-3)}.cr-ruler.bar{color:var(--text)}
+
+/* painting: keep the pointer on the grid, and stop text selection while dragging */
+.cr-part .beat-step{touch-action:none;user-select:none;-webkit-user-select:none}
+.cr-part .beat-grid{user-select:none;-webkit-user-select:none}
+
+/* ---- never let the Generate / Adjust blocks shrink inside the scrolling Create view ---- */
+.gen-root{min-height:min-content}
+.gen-root>*,.cr-part,.cr-adjust{flex:none}
+
+/* ---- phones and small tablets ---- */
+@media(max-width:700px){
+  .cr-root{padding:10px 12px 18px}
+  .cr-head{flex-wrap:wrap;gap:10px 12px;padding:12px}
+  .cr-steps{width:100%;margin:0;gap:4px;justify-content:space-between}
+  .cr-step{height:32px;padding:0 10px 0 4px;font-size:12px;gap:6px}
+  .cr-step i{width:22px;height:22px}
+  .cr-step-line{flex:1;min-width:8px;width:auto}
+  .gx{padding:20px 16px;border-radius:20px}
+  .gx-text h2{font-size:24px}
+  .gr-head{padding:16px}
+  .gr-title h2{font-size:22px}
+  .gr-adjust{min-width:0;width:100%}
+  .gl{padding:4px 14px 14px}
+  .gl-lane{grid-template-columns:1fr auto;gap:8px 10px}
+  .gl-label{grid-column:1}
+  .gl-actions{grid-column:2;grid-row:1}
+  .gl-vis{grid-column:1/-1;grid-row:2;height:68px}
+  .gl-actions .gen-mini span{display:none}
+  .gl-actions .gen-mini{width:40px;padding:0}
+  .gr-foot{padding:14px 16px}
+  .cr-adjust{gap:8px}
+  .cr-subtabs{width:100%;justify-content:space-between}
+  .cr-sub{padding:0 10px;flex:1;justify-content:center}
+  .cr-origin{display:none}
+  .cr-part-head{padding:14px}
+  .cr-part-body{padding:14px}
+  .cr-part-ctl{width:100%}
+  .cr-f select{min-width:0;width:100%}
+  .cr-f{flex:1 1 120px}
+  .cr-part .beat-grid{min-width:620px}
+  .melody-grid{min-width:1000px!important}
+  .cr-foot{padding:10px}
+  .cr-finish-btns{width:100%}
+  .cr-finish-btns button{flex:1;justify-content:center}
+}
+@media(max-width:700px){.cr-step:not(.on) span{display:none}.cr-step:not(.on){padding:0 4px}}
+@media(max-width:700px){.cr-sub:not(.on) span{display:none}.cr-part-title{flex:1 1 0}}
+
+/* ---- hero: just the headline, big ---- */
+.gx-top{align-items:center}
+.gx-text h2{margin:0;font-size:clamp(30px,3.6vw,48px);line-height:1.05;letter-spacing:-.035em}
+
+/* ---- "Turn into a full song": the big finishing move ---- */
+.gr-foot{padding:20px 26px;background:linear-gradient(100deg,color-mix(in srgb,#f472b6 10%,var(--surface-2)),var(--surface-2) 70%)}
+.gr-spacer{flex:1}
+.gr-song{position:relative;overflow:hidden;isolation:isolate;display:inline-flex;align-items:center;justify-content:center;gap:12px;min-width:310px;height:62px;padding:0 32px;border:0;border-radius:18px;font-size:17px;font-weight:750;letter-spacing:-.01em;color:#fff;background:linear-gradient(135deg,#f472b6 0%,#fb923c 100%);box-shadow:0 16px 38px -14px #fb923c,inset 0 0 0 1px rgba(255,255,255,.18);transition:transform .18s,box-shadow .2s,filter .2s}
+.gr-song .ic{width:23px;height:23px}
+.gr-song:hover{background:linear-gradient(135deg,#f472b6 0%,#fb923c 100%);transform:translateY(-2px);filter:brightness(1.06);box-shadow:0 20px 44px -14px #fb923c,inset 0 0 0 1px rgba(255,255,255,.25)}
+.gr-song:active{transform:scale(.985)}
+.gr-song::after{content:"";position:absolute;inset:-20% auto -20% -60%;width:40%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-20deg);animation:play-shine 3.4s ease-in-out infinite;pointer-events:none;z-index:-1}
+.gr-song.busy::after{display:none}
+@media(prefers-reduced-motion:reduce){.gr-song::after{animation:none;display:none}}
+@media(max-width:700px){.gr-song{width:100%;min-width:0}.gr-form{width:100%;justify-content:space-between}}

@@ -14,41 +14,10 @@
 @media(max-height:760px){.viz-hint .tl-empty-wave,.viz-hint .tl-empty-steps{display:none}}
 
 /* ---- library ---- */
-#library{display:flex;flex-direction:column;gap:14px}
-.library-head h2{margin:0;font-size:22px;letter-spacing:-.02em}
-.lib-tabs{display:inline-flex;align-self:flex-start;gap:4px;padding:4px;border-radius:14px;background:var(--surface-2);border:1px solid var(--border)}
-.lib-tabs button{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 16px;border:0;border-radius:10px;background:none;color:var(--text-2);font-weight:650;cursor:pointer;transition:background .2s,color .2s}
-.lib-tabs button .ic{width:15px;height:15px}
-.lib-tabs button:hover{color:var(--text)}
-.lib-tabs button.active{background:var(--accent-grad);color:#fff;box-shadow:0 4px 16px -6px var(--accent-2)}
-.lib-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.lib-bar>button{display:inline-flex;align-items:center;gap:6px;height:38px}
-.lib-bar .ic{width:15px;height:15px}
 .lib-search{flex:1;min-width:160px;display:flex;align-items:center;gap:8px;height:38px;padding:0 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface-2)}
 .lib-search:focus-within{border-color:var(--accent)}
 .lib-search .ic{width:15px;height:15px;color:var(--text-3);flex:none}
 .lib-search input{flex:1;min-width:0;border:0;background:none;outline:none;padding:0;height:100%}
-#library .song-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;overflow:auto;align-content:start;min-height:0}
-#library .song-row{display:flex;align-items:center;gap:12px;padding:8px 10px 8px 8px;border-radius:14px;border:1px solid var(--border);background:var(--surface-2);transition:background .15s,border-color .15s,transform .15s;cursor:grab}
-#library .song-row:hover{border-color:var(--border-strong);transform:translateY(-1px)}
-#library .song-row.current{border-color:color-mix(in srgb,var(--accent) 55%,var(--border));background:color-mix(in srgb,var(--accent) 9%,var(--surface-2))}
-.song-cover,.station-art{position:relative;flex:none;width:46px;height:46px;border-radius:12px;border:0;padding:0;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,hsl(var(--h) 80% 62%),hsl(calc(var(--h) + 50) 85% 58%));box-shadow:0 6px 16px -8px hsl(var(--h) 80% 55%);overflow:hidden}
-.song-glyph{display:grid;place-items:center;transition:opacity .15s}
-.song-glyph .ic{width:18px;height:18px;fill:currentColor;stroke-width:1.4}
-.song-cover .song-eq,.station-art .song-eq{position:absolute;inset:0;display:none;align-items:flex-end;justify-content:center;gap:3px;padding-bottom:11px;background:rgba(0,0,0,.28)}
-.song-eq i{width:3px;height:14px;border-radius:2px;background:#fff;transform-origin:bottom;animation:lib-eq .9s ease-in-out infinite}
-.song-eq i:nth-child(2){animation-delay:-.3s}.song-eq i:nth-child(3){animation-delay:-.6s}
-@keyframes lib-eq{0%,100%{transform:scaleY(.3)}50%{transform:scaleY(1)}}
-.song-row.playing .song-eq,.station.on .song-eq{display:flex}
-.song-row.playing .song-glyph,.station.on .song-glyph{opacity:0}
-.song-row:hover .song-glyph,.station:hover .song-glyph{opacity:1}
-.song-row.playing:hover .song-eq,.station.on:hover .song-eq{display:none}
-#library .song-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
-#library .song-info strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px}
-#library .song-info small{color:var(--text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.song-menu{flex:none;width:32px;height:32px;display:grid;place-items:center;padding:0;border:0;border-radius:50%;background:none;color:var(--text-3);opacity:.55}
-.song-menu .ic{width:15px;height:15px}
-.song-row:hover .song-menu{opacity:1;background:var(--surface-3,var(--surface))}
 .lib-note{margin:0;color:var(--text-3);font-size:11.5px;line-height:1.5}
 .lib-empty{display:grid;justify-items:center;gap:8px;padding:34px 16px;text-align:center;border:1px dashed var(--border-strong);border-radius:18px;color:var(--text-2)}
 .lib-empty b{color:var(--text);font-size:15px}
@@ -56,23 +25,10 @@
 .lib-empty-orb .ic{width:24px;height:24px}
 
 /* radio */
-.station-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;overflow:auto;align-content:start;min-height:0}
-.station{--h:265;display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:16px;border:1px solid var(--border);background:linear-gradient(160deg,hsl(var(--h) 80% 60%/.12),var(--surface-2) 70%);transition:border-color .15s,transform .15s}
-.station:hover{transform:translateY(-1px);border-color:var(--border-strong)}
-.station.on{border-color:hsl(var(--h) 80% 62%);box-shadow:0 10px 28px -16px hsl(var(--h) 80% 60%)}
-.station-play{display:flex;align-items:center;gap:12px;width:100%;padding:0;border:0;background:none;text-align:left;color:var(--text)}
-.station-text{display:flex;flex-direction:column;gap:2px;min-width:0}
-.station-text b{font-size:14px}.station-text small{color:var(--text-3)}
-.station p{margin:0;color:var(--text-2);font-size:12px;line-height:1.45}
-.station a{align-self:flex-start;display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text-3);text-decoration:none}
-.station a:hover{color:var(--accent)}.station a .ic{width:12px;height:12px}
 .lib-custom{padding:10px 12px;border-radius:14px;border:1px solid var(--border);background:var(--surface-2)}
 .lib-custom summary{cursor:pointer;font-weight:650;font-size:13px;color:var(--text-2)}
 .lib-custom form{margin:12px 0 8px}
 .lib-custom small{color:var(--text-3)}
-#library .song-cover,#library .station-art{background:linear-gradient(135deg,hsl(var(--h) 80% 62%),hsl(calc(var(--h) + 50) 85% 58%))!important;color:#fff!important;border:0!important}
-#library .station-play{background:none!important;border:0!important;box-shadow:none!important}
-#library .song-menu{background:none}
 
 /* ---- visualizer: scene options row + buttons hover like the rest of the app ---- */
 .viz button:not(.primary):not(.scene-card):not(.palette):hover{background:rgba(70,64,98,.85)!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.28)}
@@ -134,3 +90,59 @@ button.danger{color:#f87171;border-color:color-mix(in srgb,#f87171 40%,var(--bor
 .topbar [data-action=undo] svg,.topbar [data-action=redo] svg{width:20px;height:20px;stroke-width:2.2}
 .topbar .topbar-group button[data-action=undo]:hover:not(:disabled),.topbar .topbar-group button[data-action=redo]:hover:not(:disabled){background:var(--surface-3,var(--surface-2))}
 .topbar [data-action=undo]:disabled,.topbar [data-action=redo]:disabled{opacity:.32;cursor:default}
+
+/* ---- DJ: pick-a-song button, fuller crate, picker dialog ---- */
+.dj-overview-wrap{position:relative}
+.dj-overview-wrap .dj-overview{display:block;width:100%}
+.dj-pick{position:absolute;inset:0;margin:auto;width:max-content;height:40px;padding:0 20px;display:inline-flex;align-items:center;gap:8px;border-radius:999px;font-weight:700;z-index:2;box-shadow:0 10px 26px -10px var(--deck)}
+.dj-pick[hidden]{display:none}
+.dj-pick .ic{width:16px;height:16px}
+.dj-crate-head .dj-crate-search{margin-left:0}
+.dj-crate .crate-count{font-size:11.5px}
+.crate-row{grid-template-columns:10px minmax(0,1fr) auto auto!important}
+.crate-row .dj-crate-kind{font-size:11px}
+.dj-pick-modal{display:flex;flex-direction:column;gap:12px;min-width:min(440px,80vw)}
+.dj-pick-search{margin:0;width:100%;height:38px}
+.dj-pick-search input{width:100%!important}
+.dj-pick-list{display:flex;flex-direction:column;gap:2px;max-height:min(46vh,380px);overflow:auto;padding-right:2px}
+.dj-pick-row{display:grid;grid-template-columns:10px minmax(0,1fr) auto;align-items:center;gap:12px;height:44px;padding:0 12px;border:0;border-radius:11px;background:none;text-align:left;color:var(--text)}
+.dj-pick-row:hover{background:var(--surface-2)}
+.dj-pick-row b{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dj-pick-row small{color:var(--text-3);font-size:11.5px}
+.dj-pick-foot{padding-top:8px;border-top:1px solid var(--border)}
+.dj-pick-foot button{display:inline-flex;align-items:center;gap:7px}
+
+/* ---- DJ records ---- */
+.dj-root .platter{--size:204px;width:var(--size);height:var(--size);margin:10px;padding:0;border-radius:50%;border:0;background:radial-gradient(circle at 50% 50%,#2a2a36 0 48%,#15151c 49% 100%);box-shadow:0 0 0 6px #1b1b24,0 0 0 7px rgba(255,255,255,.1),0 18px 36px -14px rgba(0,0,0,.8),inset 0 0 0 1px rgba(255,255,255,.06);display:block;position:relative;cursor:grab;touch-action:none;transition:box-shadow .3s,transform .15s}
+.dj-root .platter:after{display:none}
+.dj-root .platter.playing{box-shadow:0 0 0 6px #1b1b24,0 0 0 7px color-mix(in srgb,var(--deck) 55%,transparent),0 0 40px -6px var(--deck),0 18px 36px -14px rgba(0,0,0,.8),inset 0 0 0 1px rgba(255,255,255,.06)}
+.dj-root .platter.is-scratch{cursor:grabbing;transform:scale(.985)}
+.dj-root .platter.is-empty{opacity:.7}
+.vinyl{position:absolute;inset:8px;border-radius:50%;background:radial-gradient(circle,#0a0a0f 0 100%);will-change:transform}
+.vinyl-grooves{position:absolute;inset:0;border-radius:50%;background:
+  radial-gradient(circle,transparent 0 33%,rgba(255,255,255,.07) 33.4%,transparent 34%),
+  radial-gradient(circle,transparent 0 62%,rgba(255,255,255,.08) 62.4%,transparent 63%),
+  radial-gradient(circle,transparent 0 79%,rgba(255,255,255,.07) 79.4%,transparent 80%),
+  repeating-radial-gradient(circle,#0b0b10 0 1.6px,#181821 2.2px 3px)}
+.vinyl-grooves::after{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:inset 0 0 0 5px #08080c,inset 0 0 22px 6px rgba(0,0,0,.55)}
+.vinyl-scuff{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,transparent 0 6%,rgba(255,255,255,.035) 8%,transparent 12% 30%,rgba(255,255,255,.03) 33%,transparent 37% 55%,rgba(255,255,255,.04) 58%,transparent 62% 80%,rgba(255,255,255,.03) 84%,transparent 88%)}
+.vinyl-marker{position:absolute;left:50%;top:5px;width:4px;height:22px;margin-left:-2px;border-radius:3px;background:var(--deck);box-shadow:0 0 10px var(--deck)}
+.vinyl-sheen{position:absolute;inset:8px;border-radius:50%;pointer-events:none;background:conic-gradient(from 20deg,transparent 0 8%,rgba(255,255,255,.2) 14%,transparent 22% 50%,rgba(255,255,255,.14) 64%,transparent 72%);mix-blend-mode:screen;-webkit-mask:radial-gradient(circle,transparent 0 30%,#000 31%);mask:radial-gradient(circle,transparent 0 30%,#000 31%)}
+.vinyl-label{position:absolute;left:50%;top:50%;width:42%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:8%;overflow:hidden;text-align:center;color:#fff;background:radial-gradient(circle at 30% 25%,color-mix(in srgb,var(--deck) 70%,#fff),var(--deck) 55%,color-mix(in srgb,var(--deck) 55%,#000));box-shadow:0 0 0 2px rgba(0,0,0,.45),0 0 0 3px rgba(255,255,255,.12) inset}
+.vinyl-deck{font-size:24px;line-height:1;font-weight:850;letter-spacing:-.02em;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+/* the whole record turns as one piece (rotation set from JS); never stack the old CSS spin on top */
+.dj-root .platter.playing{animation:none}
+.dj-root .platter.is-empty .vinyl-label{filter:saturate(.35)}
+/* light theme: brushed-aluminium platter around a black record */
+[data-theme='light'] .dj-root .platter{background:radial-gradient(circle at 50% 50%,#d9d7e3 0 48%,#c9c6d6 49% 100%);box-shadow:0 0 0 6px #e7e5ef,0 0 0 7px rgba(20,10,60,.1),0 18px 32px -16px rgba(40,20,90,.35),inset 0 0 0 1px rgba(255,255,255,.7)}
+[data-theme='light'] .dj-root .platter.playing{box-shadow:0 0 0 6px #e7e5ef,0 0 0 7px color-mix(in srgb,var(--deck) 60%,transparent),0 0 36px -8px var(--deck),0 18px 32px -16px rgba(40,20,90,.35)}
+[data-theme='light'] .dj-root .platter.is-empty{opacity:.85}
+[data-theme='light'] .vinyl{box-shadow:0 2px 6px rgba(0,0,0,.25)}
+/* the workspace is only focused programmatically (skip target); never draw a ring around the whole screen */
+#workspace:focus{outline:none}
+/* UX audit fixes: screens taller than the window scroll instead of clipping controls */
+.dj-root{height:100%}
+.mx-root{overflow-y:auto}
+.mx-board{min-height:540px}
+/* Chrome draws a dark unfilled range track when accent-color is light; use a deeper accent in light theme */
+[data-theme='light'] input[type=range]{accent-color:#7c3aed}

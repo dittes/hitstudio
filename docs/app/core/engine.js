@@ -4,7 +4,7 @@
 //   clip sources ─► track.input ─► [insert effects] ─► pan ─► volume ─► track.analyser ─┐
 //                                                                                       ▼
 //   engine.externalInput (DJ decks, instruments, previews) ─────────────────────► masterIn
-//   masterIn ─► [master effects] ─► masterGain ─► masterAnalyser ─► safety limiter ─► out
+//   masterIn ─► [master effects] ─► masterGain ─► master EQ ─► masterAnalyser ─► safety limiter ─► out
 //
 // The same graph builder is used with an OfflineAudioContext for export.
 //
@@ -15,6 +15,7 @@
 import { buffers, setDecodeContext } from './buffers.js'
 import { getEffect,                 } from './effects/registry.js'
 import { projectDuration, useStore } from './store.js'
+import { buildEq, eqOf } from '../features/eq/eq.js'
 
 const chainKey = (fx                  ) => fx.map((f) => `${f.id}:${f.type}:${f.bypass ? 0 : 1}`).join('|')
 
@@ -78,13 +79,15 @@ export function buildMixGraph(ctx                  , p         , destination    
   limiter.ratio.value = 20
   limiter.attack.value = 0.002
   limiter.release.value = 0.1
-  masterGain.connect(masterAnalyser)
-  masterGain.connect(limiter)
+  const eq = buildEq(ctx, eqOf(p))
+  masterGain.connect(eq.input)
+  eq.output.connect(masterAnalyser)
+  eq.output.connect(limiter)
   limiter.connect(destination)
   const anySolo = soloActive(p)
   const tracks = new Map                    ()
   for (const t of p.tracks) tracks.set(t.id, buildTrack(ctx, t, masterIn, anySolo))
-  return { ctx, tracks, masterIn, masterChain, masterGain, masterAnalyser, out: limiter }
+  return { ctx, tracks, masterIn, masterChain, masterGain, eq, masterAnalyser, out: limiter }
 }
 
 /** Schedule one clip into a track graph. Returns the source (or null if out of range). */
@@ -477,6 +480,7 @@ export class AudioEngine {
       }
     }
     g.masterGain.gain.setTargetAtTime(p.master.volume, now, 0.015)
+    if (p.master.eq !== prev.master?.eq) g.eq.apply(eqOf(p))
     const mk = chainKey(p.master.effects)
     if (mk !== this.builtMasterKey) {
       g.masterIn.disconnect()

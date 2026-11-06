@@ -28,6 +28,7 @@ export function applySetup(setup) {
     d.chords = s.chords
     d.bass = s.bass
     d.sections = s.sections
+    d.space = s.space ?? 1
     d.origin = { title: setup.title, code: setup.code }
   })
   useStore.getState().mutate('Generate song idea', (p) => {

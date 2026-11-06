@@ -27,6 +27,30 @@
 //   • instruments, levels and filters per genre so the parts sit together
 // ─────────────────────────────────────────────────────────────
 
+/** Chord colour per genre: weights for plain triads, 7th chords and rich 9ths. */
+const CHORD_COLOUR = {
+  lofi: [['seventh', 4], ['ninth', 3], ['triad', 1]],
+  chillhop: [['seventh', 4], ['ninth', 3], ['triad', 1]],
+  ambient: [['ninth', 3], ['seventh', 3], ['triad', 2]],
+  house: [['seventh', 3], ['triad', 3]],
+  afro: [['seventh', 2], ['triad', 4]],
+  pop: [['triad', 5], ['seventh', 2]],
+  synthwave: [['triad', 4], ['seventh', 2]],
+  trap: [['triad', 3], ['seventh', 3], ['ninth', 1]],
+  dubstep: [['triad', 4], ['seventh', 1]],
+  techno: [['triad', 3], ['seventh', 1]],
+  dnb: [['seventh', 3], ['triad', 3]],
+  rock: [['triad', 1]],
+}
+/** How roomy the reverb feels (1 = normal). */
+const SPACE = { lofi: 1.2, chillhop: 1.1, ambient: 1.7, dreamy: 1.4, house: 0.8, synthwave: 1.3, trap: 0.85, pop: 0.95, afro: 0.8, rock: 0.7, dubstep: 0.75, techno: 0.7, dnb: 0.75 }
+const pickColour = (genreId, seed, bumpMood) => {
+  const r = createRng((seed ^ 0x9e3779b9) >>> 0)
+  const pairs = CHORD_COLOUR[genreId] ?? [['triad', 1]]
+  const ext = r.weighted(pairs)
+  return bumpMood === 'dreamy' && ext === 'triad' && pairs.some(([e]) => e === 'seventh') ? 'seventh' : ext
+}
+
 export const MAX_STEPS = 96
 export const LANES = ['kick', 'snare', 'clap', 'chat', 'ohat', 'tom', 'rim', 'perc']
 /** rows the Create melody grid shows (0 = lowest tonic) */
@@ -554,7 +578,17 @@ export function makeMelody({ scale, prog, density = 0.5, rhythm = 'straight', rn
 
   // call (bar 0): stepwise, leaps recover in the opposite direction
   const call = []
-  let cur = bestNear(tonicRow + rng.pick([0, 2, 4, -1]), 0)
+  // the home note sits high in the grid, so the phrase starts below it and climbs through it to a peak
+  const room = hi - tonicRow
+  let cur = bestNear(tonicRow + rng.pick(room < 3 ? [-4, -3, -2] : [0, -2, 2, -1]), 0)
+  // a phrase has a shape: rise to a peak around two thirds of the way, then settle back
+  const peak = Math.min(hi, tonicRow + Math.max(1, Math.min(room, rng.pick([3, 4, 5]))))
+  const settle = tonicRow + rng.pick([1, 2, 0])
+  const startRow = cur
+  const targetAt = (i) => {
+    const p = rh.length > 1 ? i / (rh.length - 1) : 0
+    return p < 0.62 ? startRow + (peak - startRow) * (p / 0.62) : peak + (settle - peak) * ((p - 0.62) / 0.38)
+  }
   let lastMove = 0
   let same = 0
   rh.forEach((s, i) => {
@@ -562,7 +596,10 @@ export function makeMelody({ scale, prog, density = 0.5, rhythm = 'straight', rn
     if (i > 0) {
       let move
       if (Math.abs(lastMove) >= 3) move = -Math.sign(lastMove) * rng.pick([1, 2])
-      else move = rng.weighted([[1, 4], [-1, 4], [2, 2], [-2, 2], [0, 1.2], [3, 0.8], [-3, 0.8], [4, 0.4]])
+      else {
+        const want = Math.sign(Math.round(targetAt(i) - cur))
+        move = rng.weighted([[1, 4], [-1, 4], [2, 2], [-2, 2], [0, 1.2], [3, 0.8], [-3, 0.8], [4, 0.4]].map(([mv, w]) => [mv, want && Math.sign(mv) === want ? w * 2.2 : want && Math.sign(mv) === -want ? w * 0.55 : w]))
+      }
       cur += move
       if (strong) cur = bestNear(cur, 0)
       cur = Math.max(lo, Math.min(hi, cur))
@@ -579,6 +616,15 @@ export function makeMelody({ scale, prog, density = 0.5, rhythm = 'straight', rn
     const len = Math.max(1, Math.min(room, rng.weighted([[1, 2], [2, 4], [3, 2], [4, 1]])))
     call.push({ s, row: cur, len, strong })
   })
+
+  // make sure the call really has a high point (a flat line is not a melody)
+  if (call.length >= 3) {
+    const rowsNow = call.map((c) => c.row)
+    if (Math.max(...rowsNow) - Math.min(...rowsNow) < 3) {
+      const pi = Math.max(1, Math.min(call.length - 2, Math.round((call.length - 1) * 0.62)))
+      call[pi].row = Math.max(lo, Math.min(hi, bestNear(Math.max(peak, Math.min(...rowsNow) + 3), 0)))
+    }
+  }
 
   // answer (bar 1): same rhythm, either repeat-with-twist, a sequence, or an inversion
   const mode = rng.weighted([['repeat', 3], ['sequence', 2], ['invert', 1]])
@@ -597,9 +643,18 @@ export function makeMelody({ scale, prog, density = 0.5, rhythm = 'straight', rn
     last.row = tonicRow
     last.len = Math.max(last.len, Math.min(4, 32 - last.s))
   }
-  return [...call, ...answer]
-    .filter((x, i) => i === 0 || i === call.length || i === call.length + answer.length - 1 || !rng.chance(0.06))
-    .map((x) => ({ id: noteId(), step: x.s, row: x.row, len: x.len }))
+  // breathing room: drop the odd note, land on the tonic, then never let one pitch hammer more than twice in a row
+  const line = [...call, ...answer].filter((x, i, all) => i === 0 || i === call.length || i === all.length - 1 || !rng.chance(0.06))
+  if (line.length) line[line.length - 1].row = tonicRow
+  for (let i = 2; i < line.length; i++) {
+    if (line[i].row === line[i - 1].row && line[i - 1].row === line[i - 2].row) {
+      const t = i === line.length - 1 ? i - 1 : i // the closing tonic stays put
+      const up = line[t].row + 1 <= hi
+      const down = line[t].row - 1 >= lo
+      line[t].row += up && down ? (rng.chance(0.5) ? 1 : -1) : up ? 1 : -1
+    }
+  }
+  return line.map((x) => ({ id: noteId(), step: x.s, row: x.row, len: x.len }))
 }
 
 // ── names ────────────────────────────────────────────────────
@@ -660,7 +715,8 @@ export function generateSetup(opts = {}) {
       preset: null,
     },
     melody: { inst: rng.weighted(g.melodyInst), notes: melody },
-    chords: { prog, style: chordStyle, inst: rng.weighted(g.chordInst), preset: null },
+    chords: { prog, style: chordStyle, inst: rng.weighted(g.chordInst), preset: null, ext: chordStyle === 'power' ? 'triad' : pickColour(genreId, seed, moodId) },
+    space: +((SPACE[genreId] ?? 1) * (moodId === 'dreamy' ? 1.15 : 1)).toFixed(2),
     bass: { on: g.bassOn === undefined ? true : rng.chance(g.bassOn), pattern: rng.weighted(g.bass), inst: rng.weighted(g.bassInst ?? [['bass', 1]]) },
     sections: {
       drums: { vol: mixVal(g.mix.drums), mute: false, tone: tone(g.mix.drums) },
@@ -693,6 +749,7 @@ export function rerollPart(setup, part, seed = randomSeed()) {
     s.chords.prog = rng.pick(m.progs).slice()
     s.chords.style = rng.weighted(g.chordStyle)
     s.chords.inst = rng.weighted(g.chordInst)
+    s.chords.ext = s.chords.style === 'power' ? 'triad' : pickColour(setup.genre, seed, setup.mood)
     s.melody.notes = makeMelody({ scale: s.scale, prog: s.chords.prog, density: g.density + (busy - 0.5) * 0.4, rhythm: g.rhythm, rng })
   } else if (part === 'bass') {
     const options = g.bass.filter(([p]) => p !== s.bass.pattern)

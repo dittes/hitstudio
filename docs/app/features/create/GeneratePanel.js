@@ -10,7 +10,7 @@ import { icon } from '../../dom.js'
 import { DEMO_SETS, demoSetup, FORMS, generateSetup, GENRES, LANES, MOODS, parseSetupCode, rerollPart } from '../../lib/songsmith.js'
 import { BASS_PATTERNS } from './patterns.js'
 import { useCreate } from './state.js'
-import { NOTE_NAMES, SCALES, chordFor, midiName } from './theory.js'
+import { NOTE_NAMES, SCALES, chordFor, midiName, voiceChords } from './theory.js'
 import { INSTRUMENTS } from './synth/instruments.js'
 import { KITS } from './synth/drums.js'
 import { applySetup, songToProject } from './songgen.js'
@@ -69,10 +69,11 @@ function melodyVis(d) {
     .join('')}</div>`
 }
 function chordsVis(d) {
+  const vc = voiceChords(d.key, d.scale, d.chords.prog, d.chords.ext ?? 'triad')
   return `<div class="gv-blocks">${[0, 1, 2, 3]
     .map((i) => {
       const idx = d.chords.prog[i] ?? 0
-      const c = chordFor(d.key, d.scale, idx)
+      const c = vc[i]
       return `<div class="gv-block" data-bar="${i}" style="--c:${chordHue(idx)}"><b>${esc(c.name)}</b><small>${c.roman}</small></div>`
     })
     .join('')}</div>`
@@ -143,7 +144,7 @@ function resultHTML(cur) {
     </header>
     ${lanesHTML(d, false)}
     <footer class="gr-foot">
-      <span class="gr-tip">${icon('lightbulb')}<span>Click any part to edit it, or <b>re-roll</b> just that part until it feels right.</span></span>
+      <span class="gr-spacer"></span>
       <label class="gr-form"><span class="cr-label">Song shape</span><select id="gen-form">${Object.keys(FORMS).map((f) => `<option value="${f}" ${gen.form === f ? 'selected' : ''}>${FORM_LABEL[f]}</option>`).join('')}</select></label>
       <button class="gr-song ${busy === 'song' ? 'busy' : ''}" data-gen-song>${icon(busy === 'song' ? 'reroll' : 'song')}<span>${busy === 'song' ? 'Building your song…' : 'Turn into a full song'}</span></button>
     </footer>
@@ -154,7 +155,7 @@ function emptyResultHTML() {
   return `<section class="gr gr-empty">
     <header class="gr-head">
       <div class="gr-art gr-art-empty">${icon('sparkles')}</div>
-      <div class="gr-title"><span class="gr-eyebrow">Your idea</span><h2>Press Generate to hear it</h2><p class="muted">HitStudio writes four parts that fit together. Each one stays editable.</p></div>
+      <div class="gr-title"><span class="gr-eyebrow">Your idea</span><h2>Press Generate to hear it</h2></div>
     </header>
     ${lanesHTML(useCreate.getState(), true)}
   </section>`
@@ -174,9 +175,7 @@ export function generateHTML() {
   <section class="gx">
     <div class="gx-top">
       <div class="gx-text">
-        <span class="gr-eyebrow">Step 1 · Generate</span>
-        <h2>Make something that sounds good — instantly</h2>
-        <p class="muted">Pick a style and press the button. HitStudio writes drums, chords, bass and a melody that fit together and plays them right away. Then adjust every part until it is yours.</p>
+        <h2>Create your instant hit</h2>
       </div>
       <div class="gx-go">
         <button class="gen-go" data-gen-go aria-label="Generate a new idea" title="Generate (G)"><span class="gen-go-spark">${icon('sparkles')}</span><span>${cur ? 'Generate another' : 'Generate'}</span><kbd>G</kbd></button>
@@ -194,7 +193,7 @@ export function generateHTML() {
   </section>
   ${cur ? resultHTML(cur) : emptyResultHTML()}
   <section class="gd">
-    <div class="gd-head"><h3>${icon('song')} Or start from a demo</h3><span class="muted">Open one as a full song, or load just its loop to adjust.</span></div>
+    <div class="gd-head"><h3>${icon('song')} Or start from a demo</h3></div>
     <div class="gd-grid">${DEMO_SETS.map((dm, i) => {
       const g = GENRES[dm.genre]
       const m = MOODS[dm.mood]
@@ -325,7 +324,7 @@ export async function handleGenerateClick(d, hooks) {
 }
 
 function stripFns(st) {
-  const { edit, resetAll, ...data } = st
+  const { edit, undo, redo, resetAll, ...data } = st
   return data
 }
 

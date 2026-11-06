@@ -14,8 +14,9 @@ export const settingEnabled = (key) => read('hitstudio.' + key, '1') !== '0';
 
 const SHORTCUTS = [
   ['Space', 'Play / pause'], ['Shift + Space', 'Play / stop the beat'], ['⌘ K', 'Search actions'], ['⌘ ,', 'Settings'],
-  ['⌘ 1 – 6', 'Switch section'], ['⌘ Z / ⌘ ⇧ Z', 'Undo / redo'], ['S', 'Split clip at playhead'], ['A – K', 'Play notes in Create'],
+  ['⌘ 1 – 7', 'Switch section'], ['⌘ Z / ⌘ ⇧ Z', 'Undo / redo'], ['S', 'Split clip at playhead'], ['A – K', 'Play notes in Create'],
   ['G', 'Generate a new idea'], ['Esc', 'Leave immersive view / stop'],
+  ['← / →', 'Visualizer: previous / next scene'], ['C', 'Visualizer: customize'], ['F', 'Visualizer: fullscreen'], ['H', 'Visualizer: hide the controls'],
 ];
 
 const toggle = (id, label, hint, on) => `<label class="st-row st-toggle"><span class="st-text"><b>${label}</b><small>${hint}</small></span><input type="checkbox" id="${id}" ${on ? 'checked' : ''} /><span class="st-switch" aria-hidden="true"></span></label>`;
@@ -45,9 +46,9 @@ export function showSettings() {
         ${range('st-speed', 'Animation speed', 0.25, 2.5, 0.05, viz('speed', 1))}
         ${range('st-glow', 'Glow', 0, 2, 0.05, viz('glow', 1))}
         ${toggle('st-particles', 'Floating particles', 'Soft particles behind the 3D scenes.', viz('particles', true) !== false)}
-        ${toggle('st-auto', 'Auto journey', 'Drift between scenes on big moments in the music.', !!viz('auto', false))}
+        ${toggle('st-auto', 'Shuffle scenes', 'Move to a new scene on big moments in the music.', !!viz('auto', false))}
         <div class="st-row"><span class="st-text"><b>Renderer</b><small>Use Compatibility if 3D is slow on your device.</small></span><select id="st-renderer">${[['webgl', '3D'], ['canvas', 'Compatibility']].map(([v, l]) => `<option value="${v}" ${viz('renderer', 'webgl') === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
-        <p class="st-note">Visualizer changes apply the next time you open the Visualize screen. In the visualizer, scene options appear above the scene bar.</p>
+        <p class="st-note">Visualizer changes apply the next time you open the Visualize screen. While watching, press C or use Customize for scenes, colours and intensity.</p>
       </section>
       <section data-st-panel="keys" hidden>
         <h3>Keyboard shortcuts</h3>

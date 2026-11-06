@@ -1,5 +1,5 @@
 /* Native DOM adaptation of the existing HitStudio theme. Palette, spacing and chrome stay unchanged. */
-:root{--ink:var(--text);--muted:var(--text-2);--panel:var(--surface);--raised:var(--surface-2);--line:var(--border);--radius:var(--r-lg);--cyan:var(--accent-3);--pink:var(--accent-2);font-family:var(--font)}
+:root,[data-theme]{--ink:var(--text);--muted:var(--text-2);--panel:var(--surface);--raised:var(--surface-2);--line:var(--border);--radius:var(--r-lg);--cyan:var(--accent-3);--pink:var(--accent-2);font-family:var(--font)}
 body{background:var(--bg);color:var(--text)}
 #app{grid-template-columns:var(--rail-w) minmax(0,1fr);grid-template-rows:var(--topbar-h) minmax(0,1fr) var(--transport-h)}
 #app.drawer-open{grid-template-columns:var(--rail-w) minmax(0,1fr) 320px}
