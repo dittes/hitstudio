@@ -79,7 +79,7 @@ export async function splitWithProgress(audio, { name = 'Song', title = 'Split i
     <div class="stem-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div>
     <div class="stem-meta"><span class="stem-pct">Getting ready…</span><span class="stem-time faint"></span></div>
     <div class="stem-chips">${STEM_NAMES.map((k) => `<span style="--c:${STEM_COLOR[k]}">${icon(STEM_ICON[k])}${STEM_LABEL[k]}</span>`).join('')}</div>
-    <p class="faint stem-note">This runs on your device and nothing is uploaded. It is a quick split: great for practising, karaoke-style mixes and remixing, but not studio-clean on dense songs.</p>
+    <p class="faint stem-note">Runs on your device, nothing is uploaded. It learns what repeats in the song (drums, bass, chords) and treats what does not as the voice, so it works best on loop-based music like pop, electronic and hip-hop.</p>
     <div class="row spread"><span></span><button data-stem-cancel>Cancel</button></div></div>`,
     () => {
       if (!done) abort.abort()

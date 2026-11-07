@@ -12,6 +12,7 @@ import { autoBalance } from './features/mixer/autoBalance.js';
 import { captureMix, recallSnap } from './features/mixer/glide.js';
 import { eqOf, eqActive, eqLabel } from './features/eq/eq.js';
 import { knob, fader, attachControls } from './ui/controls.js';
+import { toolsHTML } from './features/io/tools-screen.js';
 import { useCreate, createEdit } from './features/create/state.js';
 import { DRUM_PRESETS, DRUM_LANE_IDS, applyDrumPreset, randomizeDrums, PROG_PRESETS, noteId, BASS_PATTERNS, CHORD_STYLES } from './features/create/patterns.js';
 import { NOTE_NAMES, SCALES, rowMidi, midiName, midiNameOct, ROMAN, chordFor, voiceChords, CHORD_EXT } from './features/create/theory.js';
@@ -44,7 +45,7 @@ export function mountStudio(mode, container, actions){
  const S=()=>useStore.getState();
  const mutate=(label,fn,coalesce)=>S().mutate(label,fn,{coalesce});
  if(mode==='tools'){
-  container.innerHTML=`<section class="tools-root"><div class="tools-head"><h1>Quick tasks</h1><p class="muted">Choose a task, open your audio, and get straight to it.</p></div><div class="tools-grid">${QUICK_TASKS.map(t=>`<button class="io-card" data-action="task:${t.id}"><span class="io-card-icon">${icon(({karaoke:'mic',stems:'layers',cut:'cut',join:'plus',ringtone:'create',noise:'edit',speed:'dj',convert:'download',bpm:'mix'})[t.id])}</span><b>${escape(t.label)}</b><small>${escape(t.sub)}</small></button>`).join('')}</div></section>`;return {dispose(){}};
+  container.innerHTML=toolsHTML(QUICK_TASKS);return {dispose(){}};
  }
  if(mode==='edit'){
   const p=S().project;

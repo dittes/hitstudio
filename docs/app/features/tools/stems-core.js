@@ -1,16 +1,17 @@
-// Quick stem separation, entirely on your device and without any model download.
+// Stem separation that runs entirely on your device: no model download, no server.
 //
-// How it works (classic signal processing, not AI):
-//   1. Harmonic / percussive separation: on the spectrogram, sustained sounds are smooth along TIME and
-//      drum hits are smooth along FREQUENCY. Median filters in both directions give soft masks.
-//   2. The harmonic part is split by frequency and stereo position:
-//        bass   = harmonic energy below ~200 Hz
-//        vocals = harmonic energy in the vocal range that sits in the CENTRE of the stereo image
-//        other  = the rest (guitars, keys, pads, wide stereo sounds, air)
-//   3. The four soft masks always add up to exactly 1, so drums + bass + vocals + other rebuilds the original.
-//
-// It is a fast "karaoke-grade" split. It will not match a trained neural network on dense mixes, and it
-// cannot pull a lead vocal out from a centre-panned bass or kick. Pure functions, no DOM: usable in a Worker.
+// This is signal processing, not a neural network, but it combines the strongest classic ideas:
+//   1. REPEATING-PATTERN MODEL (REPET). Music is built from loops: drums, bass, chords and keys come back every
+//      bar, a lead vocal does not. We estimate the loop length, build a "typical repeat" spectrogram with a median
+//      over the repeats, and whatever is NOT explained by the loop is the foreground (voice, solos).
+//   2. HARMONIC / PERCUSSIVE SEPARATION. Sustained sounds are smooth along time, hits are smooth along frequency.
+//      Used to split the backing track into drums, bass and the rest.
+//   3. STEREO + RANGE. The voice is taken from the centre (mid) signal, in the vocal frequency range, so wide
+//      guitars, pads and reverb stay in the backing track instead of being scraped away.
+//   4. Soft masks, smoothed over time and frequency, that always add up to exactly 1 → drums + bass + vocals + other
+//      rebuilds the original.
+// It is clearly better than a plain filter split, but it is not a trained model: on dense or heavily reverbed mixes
+// you will still hear some bleed. Pure functions, no DOM, so it can run in a Worker.
 
 export const STEM_NAMES = ['drums', 'bass', 'vocals', 'other']
 export const MAX_SECONDS = 420
@@ -18,41 +19,49 @@ export const MAX_SECONDS = 420
 const N = 2048
 const HOP = N / 2
 const BINS = N / 2 + 1
-const TIME_KERNEL = 13 // frames (≈ 0.3 s at 44.1 kHz)
-const FREQ_KERNEL = 13 // bins (≈ 280 Hz at 44.1 kHz)
+const TIME_KERNEL = 13 // frames
+const FREQ_KERNEL = 13 // bins
 
-// ── FFT (iterative radix-2, tables cached) ──────────────────
-const cosT = new Float64Array(N / 2)
-const sinT = new Float64Array(N / 2)
-for (let i = 0; i < N / 2; i++) {
-  cosT[i] = Math.cos((2 * Math.PI * i) / N)
-  sinT[i] = -Math.sin((2 * Math.PI * i) / N)
+// ── FFT (iterative radix-2), one cached plan per size ──────
+const plans = new Map()
+function plan(size) {
+  let p = plans.get(size)
+  if (p) return p
+  const cos = new Float64Array(size / 2)
+  const sin = new Float64Array(size / 2)
+  for (let i = 0; i < size / 2; i++) {
+    cos[i] = Math.cos((2 * Math.PI * i) / size)
+    sin[i] = -Math.sin((2 * Math.PI * i) / size)
+  }
+  const bits = Math.log2(size)
+  const rev = new Uint32Array(size)
+  for (let i = 0; i < size; i++) {
+    let r = 0
+    for (let b = 0, x = i; b < bits; b++, x >>= 1) r = (r << 1) | (x & 1)
+    rev[i] = r
+  }
+  p = { size, cos, sin, rev }
+  plans.set(size, p)
+  return p
 }
-const rev = new Uint16Array(N)
-for (let i = 0; i < N; i++) {
-  let r = 0
-  for (let b = 0, x = i; b < Math.log2(N); b++, x >>= 1) r = (r << 1) | (x & 1)
-  rev[i] = r
-}
-function fft(re, im) {
-  for (let i = 0; i < N; i++) {
+function fftWith(p, re, im) {
+  const { size, cos, sin, rev } = p
+  for (let i = 0; i < size; i++) {
     const j = rev[i]
     if (j > i) {
       let t = re[i]; re[i] = re[j]; re[j] = t
       t = im[i]; im[i] = im[j]; im[j] = t
     }
   }
-  for (let size = 2; size <= N; size <<= 1) {
-    const half = size >> 1
-    const step = N / size
-    for (let start = 0; start < N; start += size) {
+  for (let len = 2; len <= size; len <<= 1) {
+    const half = len >> 1
+    const step = size / len
+    for (let start = 0; start < size; start += len) {
       for (let k = 0, t = 0; k < half; k++, t += step) {
         const a = start + k
         const b = a + half
-        const wr = cosT[t]
-        const wi = sinT[t]
-        const xr = re[b] * wr - im[b] * wi
-        const xi = re[b] * wi + im[b] * wr
+        const xr = re[b] * cos[t] - im[b] * sin[t]
+        const xi = re[b] * sin[t] + im[b] * cos[t]
         re[b] = re[a] - xr
         im[b] = im[a] - xi
         re[a] += xr
@@ -61,9 +70,11 @@ function fft(re, im) {
     }
   }
 }
-/** inverse FFT by swapping real and imaginary parts around a forward FFT (result is scaled by 1/N) */
+const mainPlan = plan(N)
+const fft = (re, im) => fftWith(mainPlan, re, im)
+/** inverse FFT by swapping real and imaginary parts around a forward FFT (scaled by 1/N) */
 function ifft(re, im) {
-  fft(im, re)
+  fftWith(mainPlan, im, re)
   const s = 1 / N
   for (let i = 0; i < N; i++) {
     re[i] *= s
@@ -71,7 +82,7 @@ function ifft(re, im) {
   }
 }
 
-// √Hann window: analysis × synthesis sums to exactly 1 at 50 % overlap
+// √Hann: analysis × synthesis sums to exactly 1 at 50 % overlap
 const win = new Float64Array(N)
 for (let i = 0; i < N; i++) win[i] = Math.sqrt(0.5 - 0.5 * Math.cos((2 * Math.PI * i) / N))
 
@@ -80,8 +91,8 @@ const smooth = (a, b, x) => {
   return t * t * (3 - 2 * t)
 }
 
-/** median of the first n numbers of a scratch array (insertion sort: n is small) */
-function median(buf, n) {
+/** q-quantile (0.5 = median) of the first n numbers of a scratch array (insertion sort: n is small) */
+function median(buf, n, q = 0.5) {
   for (let i = 1; i < n; i++) {
     const v = buf[i]
     let j = i - 1
@@ -91,19 +102,104 @@ function median(buf, n) {
     }
     buf[j + 1] = v
   }
-  return buf[n >> 1]
+  return buf[Math.min(n - 1, Math.floor(n * q))]
 }
 
 const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
 
 /**
+ * Loop length in frames, found from the autocorrelation of band envelopes ("beat spectrum").
+ * Returns { period (fractional frames), confidence 0..1 } or null.
+ */
+function findLoop(env, frames, frameSec) {
+  const bands = env.length
+  const size = 1 << Math.ceil(Math.log2(frames * 2))
+  const p = plan(size)
+  const re = new Float64Array(size)
+  const im = new Float64Array(size)
+  const ac = new Float64Array(frames)
+  for (let b = 0; b < bands; b++) {
+    const e = env[b]
+    let mean = 0
+    for (let f = 0; f < frames; f++) mean += e[f]
+    mean /= frames
+    re.fill(0)
+    im.fill(0)
+    let norm = 0
+    for (let f = 0; f < frames; f++) {
+      re[f] = e[f] - mean
+      norm += re[f] * re[f]
+    }
+    if (norm < 1e-12) continue
+    fftWith(p, re, im)
+    for (let i = 0; i < size; i++) {
+      re[i] = re[i] * re[i] + im[i] * im[i]
+      im[i] = 0
+    }
+    fftWith(p, im, re) // inverse FFT by swapping the arrays; the real part ends up in `re`
+    for (let l = 0; l < frames; l++) ac[l] += re[l] / size / norm
+  }
+  for (let l = frames - 1; l >= 0; l--) ac[l] /= Math.max(1e-9, ac[0])
+  const minLag = Math.max(8, Math.ceil(0.8 / frameSec))
+  const maxLag = Math.min(Math.floor(frames / 3), Math.floor(13 / frameSec))
+  if (maxLag <= minLag + 2) return null
+  let best = -1
+  let bestScore = -1
+  const scoreAt = new Float64Array(maxLag + 2)
+  for (let lag = minLag; lag <= maxLag; lag++) {
+    // a true loop also repeats at 2x, 3x, 4x ... its length (up to ~ 40 s), so average over all those multiples
+    let s = 0
+    let c = 0
+    for (let m = 1; m <= 12; m++) {
+      const L = lag * m
+      if (L >= frames || L * frameSec > 40) break
+      s += ac[L]
+      c++
+    }
+    if (c < 2) continue
+    s /= c
+    // prefer a local peak; between equally good candidates, the shorter one
+    if (ac[lag] < ac[lag - 1] || ac[lag] < ac[lag + 1]) s *= 0.6
+    s *= 1 - 0.004 * (lag / maxLag)
+    scoreAt[lag] = s
+    if (s > bestScore) {
+      bestScore = s
+      best = lag
+    }
+  }
+  if (best < 0) return null
+  // parabolic refinement of the peak position
+  const a = ac[best - 1]
+  const b = ac[best]
+  const c = ac[best + 1]
+  const denom = a - 2 * b + c
+  const frac = denom < -1e-9 ? (0.5 * (a - c)) / denom : 0
+  const period = best + Math.max(-0.5, Math.min(0.5, frac))
+  // the rhythm section (drums) repeats faster than the whole arrangement: find a shorter divisor of the loop (a bar or so)
+  let drumPeriod = period
+  for (const m of [8, 6, 4, 3, 2]) {
+    const lag = Math.round(best / m)
+    if (lag * frameSec < 1.6 || lag < minLag || lag > maxLag) continue
+    if (Math.abs(lag * m - best) > 1.5 * m * 0.5) continue
+    let top = 0
+    for (let d = -1; d <= 1; d++) top = Math.max(top, scoreAt[lag + d] || 0)
+    if (top >= 0.5 * bestScore) {
+      drumPeriod = best / m
+      break
+    }
+  }
+  return { period, drumPeriod, confidence: Math.max(0, Math.min(1, bestScore)) }
+}
+
+/**
  * @param {Float32Array} left
  * @param {Float32Array} right  (pass the same array for mono)
  * @param {number} sampleRate
- * @param {{ onProgress?: (p:number)=>void, shouldCancel?: ()=>boolean }} opts
+ * @param {{ onProgress?: (p:number)=>void, shouldCancel?: ()=>boolean, params?: object }} opts
  * @returns {Promise<Record<'drums'|'bass'|'vocals'|'other', [Float32Array, Float32Array]> | null>} null when cancelled
  */
-export async function separateStems(left, right, sampleRate, { onProgress = () => {}, shouldCancel = () => false } = {}) {
+export async function separateStems(left, right, sampleRate, { onProgress = () => {}, shouldCancel = () => false, params = {} } = {}) {
+  const P = { repQuantile: 0.35, drumRep: 0.35, sharpen: 1.6, centrePow: 2, vocalLow: 150, vocalHigh: 7000, ...params }
   const len = left.length
   const frames = Math.ceil((len + N) / HOP) + 1
   const padLen = (frames + 1) * HOP
@@ -114,8 +210,6 @@ export async function separateStems(left, right, sampleRate, { onProgress = () =
 
   const zr = new Float64Array(N)
   const zi = new Float64Array(N)
-
-  // unpack one packed FFT (L + jR) into two half-spectra
   const XLr = new Float64Array(BINS)
   const XLi = new Float64Array(BINS)
   const XRr = new Float64Array(BINS)
@@ -136,48 +230,95 @@ export async function separateStems(left, right, sampleRate, { onProgress = () =
     }
   }
 
-  // ── pass 1: magnitude of the mid (L+R) spectrogram ──
+  const hz = (k) => (k * sampleRate) / N
+  const frameSec = HOP / sampleRate
+
+  // band layout for the loop finder: 36 log-spaced bands
+  const NB = 36
+  const bandOf = new Int16Array(BINS).fill(-1)
+  for (let k = 1; k < BINS; k++) {
+    const f = hz(k)
+    if (f < 60 || f > 12000) continue
+    bandOf[k] = Math.min(NB - 1, Math.floor((Math.log(f / 60) / Math.log(12000 / 60)) * NB))
+  }
+  const env = Array.from({ length: NB }, () => new Float32Array(frames))
+
+  // ── pass 1: mid magnitude spectrogram, centredness, band envelopes ──
   const mag = new Float32Array(frames * BINS)
+  const centre = new Uint8Array(frames * BINS)
   for (let f = 0; f < frames; f++) {
     analyse(f)
     const base = f * BINS
     for (let k = 0; k < BINS; k++) {
       const r = (XLr[k] + XRr[k]) * 0.5
       const i = (XLi[k] + XRi[k]) * 0.5
-      mag[base + k] = Math.sqrt(r * r + i * i)
+      const m = Math.sqrt(r * r + i * i)
+      mag[base + k] = m
+      const l = Math.hypot(XLr[k], XLi[k])
+      const rr = Math.hypot(XRr[k], XRi[k])
+      centre[base + k] = Math.round((255 * 2 * Math.min(l, rr)) / (l + rr + 1e-9))
+      const b = bandOf[k]
+      if (b >= 0) env[b][f] += m * m
     }
+    for (let b = 0; b < NB; b++) env[b][f] = Math.sqrt(env[b][f])
     if (f % 96 === 0) {
-      onProgress((f / frames) * 0.2)
+      onProgress((f / frames) * 0.15)
       await tick()
       if (shouldCancel()) return null
     }
   }
 
-  // ── per-bin frequency weights ──
-  const hz = (k) => (k * sampleRate) / N
+  // ── the loop: how long is one repeat? ──
+  const loop = P.noLoop ? null : findLoop(env, frames, frameSec)
+  const repeatConf = loop ? Math.min(1, Math.max(0, (loop.confidence - 0.12) / 0.35)) : 0
+  const repOffsets = []
+  const drumOffsets = []
+  if (loop && repeatConf > 0) {
+    for (let m = -6; m <= 6; m++) repOffsets.push(m * loop.period)
+    for (let m = -8; m <= 8; m++) drumOffsets.push(m * loop.drumPeriod)
+  }
+  params.debug?.({ loop, repeatConf, frameSec })
+  onProgress(0.18)
+
+  // ── frequency weights ──
   const bassW = new Float32Array(BINS)
   const vocalBand = new Float32Array(BINS)
   for (let k = 0; k < BINS; k++) {
     const f = hz(k)
     bassW[k] = 1 - smooth(110, 260, f)
-    vocalBand[k] = smooth(140, 320, f) * (1 - smooth(6500, 11000, f))
+    vocalBand[k] = smooth(P.vocalLow * 0.9, P.vocalLow * 2.1, f) * (1 - smooth(P.vocalHigh, P.vocalHigh * 1.6, f))
   }
 
-  // ── pass 2: masks, then rebuild each stem ──
-  const outputs = STEM_NAMES.map(() => [new Float32Array(padLen), new Float32Array(padLen)])
+  // ── pass 2: masks (stored as bytes), then smoothing ──
+  const mhB = new Uint8Array(frames * BINS) // share of the backing track that is drums
+  const voB = new Uint8Array(frames * BINS) // vocal mask on the mid signal
   const bufT = new Float32Array(TIME_KERNEL)
   const bufF = new Float32Array(FREQ_KERNEL)
-  const maskD = new Float32Array(BINS)
-  const maskB = new Float32Array(BINS)
-  const maskV = new Float32Array(BINS)
+  const bufR = new Float32Array(repOffsets.length || 1)
+  const bufD = new Float32Array(drumOffsets.length || 1)
   const halfT = TIME_KERNEL >> 1
   const halfF = FREQ_KERNEL >> 1
   const eps = 1e-9
   for (let f = 0; f < frames; f++) {
-    analyse(f)
     const base = f * BINS
+    // frames at multiples of the loop length (the same place in earlier / later repeats)
+    let repFrames = []
+    if (repOffsets.length) {
+      for (const off of repOffsets) {
+        const t = Math.round(f + off)
+        if (t >= 0 && t < frames) repFrames.push(t)
+      }
+      if (repFrames.length < 3) repFrames = []
+    }
+    let drumFrames = []
+    if (drumOffsets.length) {
+      for (const off of drumOffsets) {
+        const t = Math.round(f + off)
+        if (t >= 0 && t < frames) drumFrames.push(t)
+      }
+      if (drumFrames.length < 3) drumFrames = []
+    }
     for (let k = 0; k < BINS; k++) {
-      // harmonic: median along time. percussive: median along frequency
       let n = 0
       for (let t = f - halfT; t <= f + halfT; t++) {
         if (t < 0 || t >= frames) continue
@@ -189,27 +330,103 @@ export async function separateStems(left, right, sampleRate, { onProgress = () =
         if (b < 0 || b >= BINS) continue
         bufF[m++] = mag[base + b]
       }
-      const P = median(bufF, m)
+      const Pm = median(bufF, m)
       const h2 = H * H
-      const p2 = P * P
-      const mh = h2 / (h2 + p2 + eps) // harmonic share of this bin
-      const l = Math.hypot(XLr[k], XLi[k])
-      const r = Math.hypot(XRr[k], XRi[k])
-      const centre = (2 * Math.min(l, r)) / (l + r + eps) // 1 when centred, 0 when hard-panned
-      const centreSharp = centre * centre
-      maskD[k] = 1 - mh
-      maskB[k] = mh * bassW[k]
-      maskV[k] = mh * (1 - bassW[k]) * vocalBand[k] * centreSharp
+      const p2 = Pm * Pm
+      const mh = h2 / (h2 + p2 + eps)
+      // drums: percussive, and (when there is a loop) repeating with the rhythm section's period
+      let drumShare = 1 - mh
+      if (drumFrames.length) {
+        for (let i = 0; i < drumFrames.length; i++) bufD[i] = mag[drumFrames[i] * BINS + k]
+        const dm = Math.min(median(bufD, drumFrames.length, P.repQuantile), mag[base + k])
+        const repD = mag[base + k] > eps ? dm / mag[base + k] : 1
+        drumShare = (1 - mh) * (P.drumRep + (1 - P.drumRep) * repD)
+      }
+      mhB[base + k] = Math.round(drumShare * 255)
+
+      // how much of this bin is explained by the repeating loop?
+      const cur = mag[base + k]
+      let fg = 1 - mh // without a loop, fall back on "not harmonic" being unlikely vocal...
+      let harmonicVoice = mh
+      if (vocalBand[k] === 0) harmonicVoice = 0 // outside the vocal range nothing is taken as voice: skip the expensive part
+      else if (repFrames.length) {
+        for (let i = 0; i < repFrames.length; i++) bufR[i] = mag[repFrames[i] * BINS + k]
+        const model = Math.min(median(bufR, repFrames.length, P.repQuantile), cur)
+        const repShare = cur > eps ? model / cur : 1
+        fg = 1 - repShare // what the loop does not explain
+        harmonicVoice = repeatConf * fg + (1 - repeatConf) * mh
+      }
+      void fg
+      const c = centre[base + k] / 255
+      let v = vocalBand[k] * Math.pow(c, P.centrePow) * harmonicVoice
+      // contrast: Wiener-style sharpening of the soft mask
+      const vp = Math.pow(v, P.sharpen)
+      v = vp / (vp + Math.pow(1 - v, P.sharpen) + eps)
+      voB[base + k] = Math.round(v * 255)
     }
+    if (f % 48 === 0) {
+      onProgress(0.18 + (f / frames) * 0.42)
+      await tick()
+      if (shouldCancel()) return null
+    }
+  }
+
+  // smooth the vocal mask a little over time and frequency (3x3), which removes "musical noise"
+  const vo = new Float32Array(frames * BINS)
+  for (let f = 0; f < frames; f++) {
+    const f0 = Math.max(0, f - 1)
+    const f1 = Math.min(frames - 1, f + 1)
+    for (let k = 0; k < BINS; k++) {
+      const k0 = Math.max(0, k - 1)
+      const k1 = Math.min(BINS - 1, k + 1)
+      let sum = 0
+      let wsum = 0
+      for (let t = f0; t <= f1; t++) {
+        for (let b = k0; b <= k1; b++) {
+          const w = (t === f ? 2 : 1) * (b === k ? 2 : 1)
+          sum += w * voB[t * BINS + b]
+          wsum += w
+        }
+      }
+      vo[f * BINS + k] = sum / wsum / 255
+    }
+    if (f % 200 === 0) {
+      await tick()
+      if (shouldCancel()) return null
+    }
+  }
+  onProgress(0.64)
+
+  // ── pass 3: synthesis ──
+  const outputs = STEM_NAMES.map(() => [new Float32Array(padLen), new Float32Array(padLen)])
+  for (let f = 0; f < frames; f++) {
+    analyse(f)
+    const base = f * BINS
     const o = f * HOP
     for (let s = 0; s < 4; s++) {
-      // rebuild this stem's full spectrum (Hermitian symmetric) packed as L + jR
       for (let k = 0; k < BINS; k++) {
-        const g = s === 0 ? maskD[k] : s === 1 ? maskB[k] : s === 2 ? maskV[k] : 1 - maskD[k] - maskB[k] - maskV[k]
-        const lr = XLr[k] * g
-        const li = XLi[k] * g
-        const rr = XRr[k] * g
-        const ri = XRi[k] * g
+        const v = vo[base + k]
+        const mh = mhB[base + k] / 255 // drum share
+        // the voice is taken from the middle: V = v · (L+R)/2, the same in both channels
+        const Vr = v * (XLr[k] + XRr[k]) * 0.5
+        const Vi = v * (XLi[k] + XRi[k]) * 0.5
+        let lr
+        let li
+        let rr
+        let ri
+        if (s === 2) {
+          lr = Vr
+          li = Vi
+          rr = Vr
+          ri = Vi
+        } else {
+          // everything that is left after taking the voice, shared out between drums, bass and other
+          const g = s === 0 ? mh : s === 1 ? (1 - mh) * bassW[k] : (1 - mh) * (1 - bassW[k])
+          lr = (XLr[k] - Vr) * g
+          li = (XLi[k] - Vi) * g
+          rr = (XRr[k] - Vr) * g
+          ri = (XRi[k] - Vi) * g
+        }
         zr[k] = lr - ri
         zi[k] = li + rr
         if (k > 0 && k < N / 2) {
@@ -226,7 +443,7 @@ export async function separateStems(left, right, sampleRate, { onProgress = () =
       }
     }
     if (f % 48 === 0) {
-      onProgress(0.2 + (f / frames) * 0.8)
+      onProgress(0.64 + (f / frames) * 0.36)
       await tick()
       if (shouldCancel()) return null
     }

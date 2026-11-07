@@ -14,6 +14,7 @@ export function element(tag, attrs = {}, ...children) {
   return node;
 }
 const paths = {
+ jam: ICONS.guitar,
  eq:'<path d="M2 15c3 0 4-8 7-8s3 10 6 10 3-6 7-6"/><path d="M5 4v4M12 3v2M19 5v3M5 19v1M12 21v-1M19 18v2" opacity=".55"/>',
  record:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"/>', tools:'<path d="m14 6 3-3a5 5 0 0 0-6 6L3.5 16.5a2.1 2.1 0 0 0 3 3L14 12a5 5 0 0 0 6-6l-3 3Z"/><path d="m4 3 5 2 1 3-3 3-3-1-2-5Zm6 10 8 8 3-3-8-8"/>', play:'<path d="m9 5 11 7-11 7Z"/>', pause:'<path d="M8 5v14M16 5v14"/>', stop:'<rect x="6" y="6" width="12" height="12" rx="2"/>', next:'<path d="M6 5.5a.8.8 0 0 1 1.2-.7l9 6.5a.85.85 0 0 1 0 1.4l-9 6.5a.8.8 0 0 1-1.2-.7Z" fill="currentColor" stroke="none"/><path d="M19 5v14" stroke-width="2.5"/>', previous:'<path d="M18 5.5a.8.8 0 0 0-1.2-.7l-9 6.5a.85.85 0 0 0 0 1.4l9 6.5a.8.8 0 0 0 1.2-.7Z" fill="currentColor" stroke="none"/><path d="M5 5v14" stroke-width="2.5"/>',
  volume:'<path d="m4 9 4 0 5-4v14l-5-4H4ZM17 8c3 2 3 6 0 8M20 5c5 4 5 10 0 14"/>', plus:'<path d="M12 5v14M5 12h14"/>', close:'<path d="m6 6 12 12M6 18 18 6"/>', folder:'<path d="M3 7V5h7l2 3h9v12H3Z"/>',

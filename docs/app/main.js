@@ -21,6 +21,7 @@ import { getDJ } from './features/dj/engine.js';
 import { detectBpm, detectKeyInfo } from './features/io/analysis.js';
 import { mountVisualize } from './visualize.js';
 import { mountEq, resetEq } from './features/eq/screen.js';
+import { mountJam } from './features/jam/screen.js';
 import { mountStudio, studioAction, splitSelection, deleteSelection, duplicateSelection, copySelection, pasteSelection } from './studio.js';
 import { createUndo, createRedo, useCreateHistory } from './features/create/state.js';
 import { showSettings } from './settings.js';
@@ -30,7 +31,7 @@ import * as music from './media.js';
 
 const app=$('#app'),library=$('#library'),player=$('#player');
 let workspace=$('#workspace');
-const modes=[['create','Create'],['edit','Edit'],['mix','Mix'],['eq','EQ'],['dj','DJ'],['tools','Tools'],['visualize','Visualize']];
+const modes=[['create','Create'],['edit','Edit'],['mix','Mix'],['eq','EQ'],['dj','DJ'],['jam','Jam'],['tools','Tools'],['visualize','Visualize']];
 let fullscreenPreviousImmersive=false,fullscreenRequested=false;
 let view=null,renderPending=0,immersive=false,previousMode=null,bootReady=false;
 const dismissedTips=new Set((()=>{try{const value=JSON.parse(localStorage.getItem('hitstudio.dismissedTips')||'[]');return Array.isArray(value)?value:[]}catch{return []}})());
@@ -48,14 +49,14 @@ function renderView(){
  const fresh=document.createElement('main');fresh.id='workspace';fresh.tabIndex=-1;workspace.replaceWith(fresh);workspace=fresh;
  if(mode!=='visualize'&&immersive)setImmersive(false);
  $$('.rail [data-mode]').forEach(b=>{const on=b.dataset.mode===mode;b.classList.toggle('active',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
- if(mode==='visualize')view=mountVisualize(workspace,actions);else if(mode==='eq')view=mountEq(workspace);else view=mountStudio(mode,workspace,actions);
+ if(mode==='visualize')view=mountVisualize(workspace,actions);else if(mode==='eq')view=mountEq(workspace);else if(mode==='jam')view=mountJam(workspace);else view=mountStudio(mode,workspace,actions);
  updateImmersiveButton();
  if(location.hash!=='#'+mode)history.replaceState(null,'','#'+mode);
  if(previousMode!==mode){previousMode=mode;$('#project-name').value=useStore.getState().project.name}
 }
 function scheduleRender(){if(!renderPending)renderPending=requestAnimationFrame(renderView)}
 $('.rail').innerHTML=modes.map(([id,label])=>`<button data-mode="${id}" aria-label="${label}">${icon(id)}<span>${label}</span></button>`).join('')+`<a class="rail-imprint" href="./impressum.html" target="_blank" rel="noopener" aria-label="Imprint (opens in a new tab)" title="Imprint">${icon('info')}<span>Imprint</span></a>`+`<button class="rail-library" data-action="library" aria-label="Song list">${icon('library')}<span>Library</span></button>`;
-player.innerHTML=`<button class="player-lift" data-action="library" aria-label="Slide up to open library" aria-expanded="false" aria-controls="library"><span></span></button><div class="player-info"><select id="audio-source" aria-label="Audio source"><option value="queue">Song list</option><option value="studio">Studio mix</option><option value="create">Beat Maker</option><option value="dj">DJ decks</option><option value="radio" disabled>Live radio</option><option value="jingle" disabled>Welcome ident</option></select><strong id="now-playing">Choose your next song</strong></div><div class="player-controls"><button class="icon" data-action="shuffle" aria-label="Shuffle" title="Shuffle">${icon('shuffle')}</button><button class="icon" data-action="previous" aria-label="Previous song">${icon('previous')}</button><button class="main-play icon" data-action="play" aria-label="Play">${icon('play')}</button><button class="icon" data-action="next" aria-label="Next song">${icon('next')}</button><button class="icon" data-action="repeat" aria-label="Repeat song" title="Repeat song">${icon('repeat')}</button></div><div class="player-progress"><span class="time" id="elapsed">0:00</span><input id="seek" type="range" min="0" max="1" step=".01" value="0" aria-label="Song position"/><span class="time" id="duration">0:00</span></div><label class="volume">${icon('volume')}<input id="master-volume" type="range" min="0" max="1" step=".01" value="1" aria-label="Master volume"/></label><div class="player-right"><button class="icon" data-action="library" aria-label="Song list" title="Song list">${icon('library')}</button><button class="icon" data-action="stop-all" aria-label="Stop all audio" title="Stop all audio">${icon('stop')}</button></div>`;
+player.innerHTML=`<button class="player-lift" data-action="library" aria-label="Slide up to open library" aria-expanded="false" aria-controls="library"><span></span></button><div class="player-info"><select id="audio-source" aria-label="Audio source"><option value="queue">Song list</option><option value="studio">Studio mix</option><option value="create">Beat Maker</option><option value="dj">DJ decks</option><option value="jam">Jam band</option><option value="radio" disabled>Live radio</option><option value="jingle" disabled>Welcome ident</option></select><strong id="now-playing">Choose your next song</strong></div><div class="player-controls"><button class="icon" data-action="shuffle" aria-label="Shuffle" title="Shuffle">${icon('shuffle')}</button><button class="icon" data-action="previous" aria-label="Previous song">${icon('previous')}</button><button class="main-play icon" data-action="play" aria-label="Play">${icon('play')}</button><button class="icon" data-action="next" aria-label="Next song">${icon('next')}</button><button class="icon" data-action="repeat" aria-label="Repeat song" title="Repeat song">${icon('repeat')}</button></div><div class="player-progress"><span class="time" id="elapsed">0:00</span><input id="seek" type="range" min="0" max="1" step=".01" value="0" aria-label="Song position"/><span class="time" id="duration">0:00</span></div><label class="volume">${icon('volume')}<input id="master-volume" type="range" min="0" max="1" step=".01" value="1" aria-label="Master volume"/></label><div class="player-right"><button class="icon" data-action="library" aria-label="Song list" title="Song list">${icon('library')}</button><button class="icon" data-action="stop-all" aria-label="Stop all audio" title="Stop all audio">${icon('stop')}</button></div>`;
 function time(value){value=Math.max(0,Number(value)||0);return `${Math.floor(value/60)}:${String(Math.floor(value%60)).padStart(2,'0')}`}
 function updatePlayer(){
  const S=useStore.getState(),source=music.source(),playing=music.isPlaying();
@@ -144,7 +145,7 @@ window.addEventListener('keydown',e=>{
  if(mod&&key==='o'){e.preventDefault();void runAction('open-project');return}
  if(mod&&key==='e'){e.preventDefault();void runAction('export');return}
  if(mod&&key==='i'){e.preventDefault();void runAction('import-project');return}
- if(mod&&/^[1-7]$/.test(key)){e.preventDefault();useStore.getState().setMode(modes[Number(key)-1][0]);return}
+ if(mod&&/^[1-8]$/.test(key)){e.preventDefault();useStore.getState().setMode(modes[Number(key)-1][0]);return}
  if(e.code==='Space'){e.preventDefault();void runAction('play');return}
  if(useStore.getState().ui.mode==='create'&&!mod&&!e.repeat){const i=['a','s','d','f','g','h','j','k'].indexOf(key);if(i>=0){e.preventDefault();void (async()=>{if(music.source()!=='create')await music.claimSource('create');previewMelodyRow(i)})();return}}
  if(useStore.getState().ui.mode==='dj'&&!mod&&!e.repeat){const map={z:[0,'toggle'],n:[1,'toggle'],x:[0,'cue'],b:[1,'cue'],c:[0,'sync'],v:[1,'sync']};if(key==='t'){e.preventDefault();void runAction('dj-transition');return}if(map[key]){e.preventDefault();const [i,method]=map[key];void (async()=>{if(music.source()!=='dj')await music.claimSource('dj');const d=getDJ().decks[i];if(method==='cue'){d.cueDown();d.cueUp()}else if(method==='sync')d.syncNow();else d.toggle()})();return}}

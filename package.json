@@ -7,7 +7,7 @@
     "dev": "node scripts/serve.mjs",
     "preview": "node scripts/serve.mjs",
     "check": "node scripts/check-native.mjs",
-    "test": "node scripts/test-native.mjs && node scripts/test-video-recorder.mjs && node scripts/test-spectral-history.mjs && node scripts/test-render-size.mjs && node scripts/test-create-history.mjs && node scripts/test-generator-quality.mjs && node scripts/test-stems.mjs",
+    "test": "node scripts/test-native.mjs && node scripts/test-video-recorder.mjs && node scripts/test-spectral-history.mjs && node scripts/test-render-size.mjs && node scripts/test-create-history.mjs && node scripts/test-generator-quality.mjs && node scripts/test-stems.mjs && node scripts/test-stems-quality.mjs",
     "build": "node scripts/build-static.mjs"
   }
 }

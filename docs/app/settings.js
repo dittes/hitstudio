@@ -14,7 +14,7 @@ export const settingEnabled = (key) => read('hitstudio.' + key, '1') !== '0';
 
 const SHORTCUTS = [
   ['Space', 'Play / pause'], ['Shift + Space', 'Play / stop the beat'], ['⌘ K', 'Search actions'], ['⌘ ,', 'Settings'],
-  ['⌘ 1 – 7', 'Switch section'], ['⌘ Z / ⌘ ⇧ Z', 'Undo / redo'], ['S', 'Split clip at playhead'], ['A – K', 'Play notes in Create'],
+  ['⌘ 1 – 8', 'Switch section'], ['⌘ Z / ⌘ ⇧ Z', 'Undo / redo'], ['S', 'Split clip at playhead'], ['A – K', 'Play notes in Create'],
   ['G', 'Generate a new idea'], ['Esc', 'Leave immersive view / stop'],
   ['← / →', 'Visualizer: previous / next scene'], ['C', 'Visualizer: customize'], ['F', 'Visualizer: fullscreen'], ['H', 'Visualizer: hide the controls'],
 ];

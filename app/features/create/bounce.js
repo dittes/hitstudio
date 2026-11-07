@@ -19,7 +19,7 @@ export function activeSections()            {
   return out
 }
 
-async function renderSection(sec         , bars        )                       {
+export async function renderSection(sec         , bars        )                       {
   const d = useCreate.getState()
   const p = useStore.getState().project
   const dm = dims(p.timeSig, d.drums.long, p.bpm)

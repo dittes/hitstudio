@@ -70,7 +70,7 @@ function showResult({ name, instrumental, vocals }) {
       )
       .join('')}</div>
     <div class="row spread kar-foot"><span class="faint">Want to fine-tune it? Both tracks open in the editor.</span><button data-kar-edit>${icon('edit')}<span>Open in Edit</span></button></div>
-    <p class="faint kar-note">A quick on-device split: vocals can leave a faint ghost in the instrumental, especially in dense songs.</p></div>`,
+    <p class="faint kar-note">Made on your device. Best on loop-based songs; live bands, heavy reverb or doubled vocals can leave a faint ghost of the singing.</p></div>`,
     () => {
       stop()
       urls.forEach((u) => URL.revokeObjectURL(u))

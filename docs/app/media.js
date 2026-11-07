@@ -4,6 +4,7 @@ import { buffers } from './core/buffers.js';
 import { stopSeq, startSeq, usePlaying } from './features/create/sequencer.js';
 import { getDJ, peekDJ } from './features/dj/engine.js';
 import { useDJ } from './features/dj/state.js';
+import { startJam, stopJam, useJam } from './features/jam/engine.js';
 import { toast } from './core/toast.js';
 import { DEMOS } from './features/dj/demoLoops.js';
 import { GENERATED_DEMOS } from './features/create/songgen.js';
@@ -73,7 +74,7 @@ export function addDemoSongs() {
 export function stopAll() {
   loadToken++;busy=false;media.pause();
   try{getEngine().pause()}catch{}
-  stopSeq();const dj=peekDJ();if(dj){dj.cancelAuto();dj.decks.forEach(d=>d.pause());if(dj.recording)dj.stopRecording()}
+  stopSeq();stopJam();const dj=peekDJ();if(dj){dj.cancelAuto();dj.decks.forEach(d=>d.pause());if(dj.recording)dj.stopRecording()}
   notify();
 }
 export async function claimSource(next) {
@@ -88,12 +89,14 @@ export function isPlaying() {
   if(active==='studio')return useStore.getState().transport.playing;
   if(active==='create')return usePlaying.getState().playing;
   if(active==='dj')return useDJ.getState().decks.some(d=>d.playing);
+  if(active==='jam')return useJam.getState().playing;
   return !media.paused;
 }
 export function nowPlaying() {
   if(active==='studio')return useStore.getState().project.name;
   if(active==='create')return 'Beat Maker · live pattern';
   if(active==='dj')return useDJ.getState().decks.filter(d=>d.playing).map(d=>d.title).join(' + ')||'DJ decks';
+  if(active==='jam'){const j=useJam.getState();return j.playing&&j.title?`Jam band · ${j.title}`:'Jam band'}
   return titleOverride || songs[current]?.title || 'Choose your next song';
 }
 export function currentDuration() { return Number.isFinite(media.duration)?media.duration:0 }
@@ -116,11 +119,12 @@ export async function nextSong(direction=1) {
 }
 export async function togglePlayback() {
   if(isPlaying()){
-    if(active==='studio')getEngine().pause();else if(active==='create')stopSeq();else if(active==='dj')peekDJ()?.decks.forEach(d=>d.pause());else media.pause();
+    if(active==='studio')getEngine().pause();else if(active==='create')stopSeq();else if(active==='dj')peekDJ()?.decks.forEach(d=>d.pause());else if(active==='jam')stopJam();else media.pause();
     notify();return;
   }
   if(active==='studio'){await claimSource('studio');await getEngine().play();}
   else if(active==='create'){await claimSource('create');await startSeq()}
+  else if(active==='jam'){await claimSource('jam');await startJam()}
   else if(active==='dj'){const dj=getDJ();await claimSource('dj');if(!useDJ.getState().decks.some(d=>d.itemId))throw new Error('Load a song onto a DJ deck first.');for(const d of dj.decks)if(d.st.itemId)d.toggle()}
   else if(active==='queue'){
     if(current<0||!media.src||media.ended)await playSong(current<0?0:current);
