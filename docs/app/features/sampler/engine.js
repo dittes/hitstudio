@@ -291,13 +291,13 @@ function fadeVoice(v, seconds, now) {
 }
 
 /** play a pad. `vel` 0..1. Returns the voice (for gate release). */
-export function trigger(i, vel = 0.85) {
+export function trigger(i, vel = 0.85, opts = {}) {
   const b = bufferFor(i)
   if (!b) return null
   const { ctx, master: out, stage: st, e } = output()
   void e.resume()
   const p = S().pads[i].params
-  const now = ctx.currentTime + 0.003
+  const now = Math.max(ctx.currentTime + 0.003, opts.when ?? 0)
 
   // choke group: a hit silences the others in its group (closed / open hat)
   if (p.choke) for (const v of voices) if (v.pad !== i && S().pads[v.pad].params.choke === p.choke) fadeVoice(v, 0.012, now)
@@ -355,7 +355,19 @@ export function trigger(i, vel = 0.85) {
     emit('end', i)
   }
   voices.add(v)
-  emit('hit', i)
+  if (opts.hold && (p.mode === 'gate' || p.mode === 'loop')) {
+    // the sequencer holds a gate/loop pad for a fixed time (one step), then lets it go
+    const at = now + opts.hold
+    const rel = Math.max(0.01, Math.min(p.release, 1))
+    gain.gain.cancelScheduledValues(at)
+    gain.gain.setValueAtTime(level, at)
+    gain.gain.linearRampToValueAtTime(0, at + rel)
+    try { src.stop(at + rel + 0.02) } catch { /* ended */ }
+    v.released = true
+  }
+  const delay = (now - ctx.currentTime) * 1000
+  if (delay > 12) setTimeout(() => emit('hit', i), delay)
+  else emit('hit', i)
   return v
 }
 
@@ -439,4 +451,23 @@ export async function startPadRecording(i, onDone) {
 }
 export function stopPadRecording() {
   if (rec?.mr.state === 'recording') rec.mr.stop()
+}
+
+// ── metering: the master output split into left and right, and the master spectrum ──
+let meter = null
+export function getMeter() {
+  const e = getEngine()
+  if (!meter || meter.ctx !== e.ctx) {
+    const splitter = e.ctx.createChannelSplitter(2)
+    e.masterAnalyser.connect(splitter)
+    const tap = (ch) => {
+      const a = e.ctx.createAnalyser()
+      a.fftSize = 1024
+      a.smoothingTimeConstant = 0
+      splitter.connect(a, ch)
+      return a
+    }
+    meter = { ctx: e.ctx, l: tap(0), r: tap(1), spectrum: e.masterAnalyser }
+  }
+  return meter
 }

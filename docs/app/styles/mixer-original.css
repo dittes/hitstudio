@@ -95,3 +95,14 @@
 .mx-empty h2 { margin: 6px 0 0; font-size: 20px; }
 .mx-empty p { margin: 0; color: var(--text-2); max-width: 380px; }
 .mx-empty-btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 6px 0; }
+
+/* Mix uses the same hardware faders as the Equalizer */
+.mx-strip{--deck:var(--tc)}
+.mx-vwrap{display:flex;align-items:flex-start;gap:2px}
+.mx-vwrap .mx-fader-scale{position:relative;width:26px;height:var(--fh,220px);flex:none}
+.mx-vwrap .mx-tick{bottom:calc(11px + var(--pos) * (100% - 22px))}
+.mx-vfader{--fh:220px}
+.mx-hpan{--fw:104px;gap:2px}
+.mx-hpan .ctl-label{order:-1}
+.mx-hpan .fader-slot{height:24px}
+.mx-hpan.fader-h .fader-slot::after{display:none}

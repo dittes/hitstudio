@@ -13,8 +13,8 @@
 
 /* pads */
 .sp-deck{display:flex;flex-direction:column;gap:10px;min-width:0}
-.sp-pads{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;width:min(100%,max(300px,calc(100dvh - 300px)));max-width:560px}
-.sp-pad{--c:var(--accent);position:relative;aspect-ratio:1;display:flex;flex-direction:column;justify-content:space-between;align-items:stretch;padding:8px 9px 9px;border-radius:16px;border:1px solid color-mix(in srgb,var(--c) 28%,var(--border));background:radial-gradient(120% 90% at 50% 0%,color-mix(in srgb,var(--c) 20%,var(--surface-2)),var(--surface-2) 72%);color:var(--text);text-align:left;cursor:pointer;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;box-shadow:0 3px 0 color-mix(in srgb,var(--c) 22%,#000),inset 0 1px 0 rgba(255,255,255,.07);transition:transform .08s,box-shadow .12s,border-color .15s,filter .15s}
+.sp-pads{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;width:min(40vw,max(300px,calc(100dvh - 290px)))}
+.sp-pad{--c:var(--accent);position:relative;aspect-ratio:1;display:flex;flex-direction:column;justify-content:space-between;align-items:stretch;padding:10px 11px 11px;border-radius:18px;border:1px solid color-mix(in srgb,var(--c) 28%,var(--border));background:radial-gradient(120% 90% at 50% 0%,color-mix(in srgb,var(--c) 20%,var(--surface-2)),var(--surface-2) 72%);color:var(--text);text-align:left;cursor:pointer;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;box-shadow:0 3px 0 color-mix(in srgb,var(--c) 22%,#000),inset 0 1px 0 rgba(255,255,255,.07);transition:transform .08s,box-shadow .12s,border-color .15s,filter .15s}
 .sp-pad:hover{border-color:color-mix(in srgb,var(--c) 60%,var(--border));filter:brightness(1.06)}
 .sp-pad:active,.sp-pad.hit{transform:translateY(2px);box-shadow:0 1px 0 color-mix(in srgb,var(--c) 22%,#000),inset 0 1px 0 rgba(255,255,255,.07)}
 .sp-pad.selected{border-color:var(--c);box-shadow:0 3px 0 color-mix(in srgb,var(--c) 30%,#000),0 0 0 2px color-mix(in srgb,var(--c) 55%,transparent),0 12px 28px -14px var(--c)}
@@ -122,8 +122,93 @@ html.sp-locked,html.sp-locked body{overflow:hidden}
 @media(max-width:1000px){.sp-sb-list{height:300px}.sp-sound-cat{display:none}.sp-sound{grid-template-columns:36px minmax(0,1fr) auto auto}}
 
 /* in fullscreen the pads use all the room they can get */
-.sp-root.is-full .sp-pads,.sp-root:fullscreen .sp-pads,.sp-root:-webkit-full-screen .sp-pads{width:min(100%,calc(100dvh - 130px));max-width:none;gap:14px}
+.sp-root.is-full .sp-pads,.sp-root:fullscreen .sp-pads,.sp-root:-webkit-full-screen .sp-pads{width:min(100%,calc(100dvh - 130px));gap:14px}
 .sp-root.is-full .sp-pad,.sp-root:fullscreen .sp-pad,.sp-root:-webkit-full-screen .sp-pad{border-radius:22px;padding:12px 14px 14px}
 .sp-root.is-full .sp-pad-name,.sp-root:fullscreen .sp-pad-name,.sp-root:-webkit-full-screen .sp-pad-name{font-size:15px}
 .sp-root.is-full .sp-legend,.sp-root:fullscreen .sp-legend,.sp-root:-webkit-full-screen .sp-legend{display:none}
-@media(max-width:1000px){.sp-main{grid-template-columns:minmax(0,1fr)}.sp-pads{width:100%;max-width:none}}
+@media(max-width:1000px){.sp-main{grid-template-columns:minmax(0,1fr)}.sp-pads{width:100%}}
+
+/* ── header: title, VU meters, genre kit ── */
+.sp-head{gap:14px 22px;flex-wrap:wrap}
+.sp-head-left{display:flex;align-items:center;gap:16px;min-width:0}
+.sp-head-right{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-left:auto}
+.sp-vu{position:relative;display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:12px;border:1px solid var(--border);background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.015))}
+.sp-vu canvas{width:190px;height:34px}
+.vu-clip{width:11px;height:11px;padding:0;border-radius:50%;border:0;background:rgba(255,255,255,.12);transition:background .1s,box-shadow .1s}
+.vu-clip.on{background:#f87171;box-shadow:0 0 10px #f87171}
+.sp-transport{display:flex;align-items:center;gap:10px}
+.sp-play{display:grid;place-items:center;width:42px;height:42px;padding:0;border:0;border-radius:50%;background:var(--accent-grad);color:#fff;box-shadow:0 8px 20px -8px var(--accent-2)}
+.sp-play .ic{width:18px;height:18px;fill:currentColor}
+.sp-play.on{box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 28%,transparent),0 8px 22px -6px var(--accent-2)}
+.sp-bpm{display:inline-flex;align-items:center;gap:2px;height:38px;padding:0 4px 0 2px;border-radius:12px;border:1px solid var(--border);background:var(--surface-2)}
+.sp-bpm button{width:28px;height:30px;padding:0;border:0;border-radius:8px;background:none;font-size:16px;color:var(--text-2)}
+.sp-bpm input{width:44px;height:30px;padding:0;border:0!important;background:none!important;text-align:center;font:700 15px var(--mono);color:var(--text);-moz-appearance:textfield}
+.sp-bpm input::-webkit-inner-spin-button{display:none}
+.sp-bpm span{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--text-3);padding-left:2px}
+.sp-head-actions{display:flex;gap:8px}
+
+/* ── right column: waveform card above the editor ── */
+.sp-side{display:flex;flex-direction:column;gap:14px;min-width:0}
+.sp-wavecard{--c:var(--accent);display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:20px;border:1px solid var(--border);background:var(--surface);box-shadow:var(--shadow-sm);position:relative}
+.sp-wavecard.drop{outline:2px dashed var(--c);outline-offset:-6px}
+.sp-wavecard.drop .sp-wave-drop{display:grid}
+.sp-wave-head{display:flex;align-items:center;gap:10px}
+.sp-wave-head b{font-size:15px;letter-spacing:-.01em;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp-time{font-size:11.5px;color:var(--text-3);font-variant-numeric:tabular-nums}
+.sp-wavecard .sp-wave{height:104px}
+.sp-wavecard .sp-wave-meta{margin-top:-2px}
+
+/* ── beat manager ── */
+.sp-beat{display:flex;flex-direction:column;gap:10px;min-height:0}
+.sp-beat-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sp-beat-grid{display:flex;flex-direction:column;gap:2px;padding:7px 8px;border-radius:14px;background:var(--bg-2);border:1px solid var(--border)}
+.sp-beat-row{--c:var(--accent);display:grid;grid-template-columns:76px 22px minmax(0,1fr);align-items:center;gap:6px}
+.sp-beat-row.muted .sp-beat-steps{opacity:.35}
+.sp-beat-name{height:14px;line-height:14px;padding:0 8px;border:0;border-radius:6px;background:color-mix(in srgb,var(--c) 18%,transparent);color:var(--text);font-size:11px;font-weight:650;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp-beat-name.sel{background:var(--c);color:#14111c}
+.sp-beat-mute{width:22px;height:14px;line-height:14px;padding:0;border:0;border-radius:6px;background:var(--surface-2);color:var(--text-3);font:700 10px var(--mono)}
+.sp-beat-mute.on{background:#f87171;color:#fff}
+.sp-beat-steps{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:2px;touch-action:none}
+.sp-cell{height:14px;min-width:0;padding:0;border:0;border-radius:4px;background:var(--surface-2);transition:background .08s,box-shadow .08s}
+.sp-cell.grp{background:var(--surface-3,var(--surface-2))}
+.sp-cell:hover{background:color-mix(in srgb,var(--c) 30%,var(--surface-2))}
+.sp-cell.on{background:var(--c);box-shadow:0 0 8px -2px var(--c)}
+.sp-cell.acc{background:color-mix(in srgb,var(--c) 70%,#fff);box-shadow:0 0 0 1.5px #fff6,0 0 10px -1px var(--c)}
+.sp-cell.now{outline:2px solid #fff;outline-offset:-1px}
+.sp-beat-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.sp-swing{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3)}
+.sp-swing input{width:110px;accent-color:var(--c)}
+.sp-swing em{font-style:normal;min-width:32px;color:var(--text-2);font-variant-numeric:tabular-nums}
+.sp-beat-tools{display:flex;align-items:center;gap:8px}
+.sp-beat-tools button{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:10px;font-weight:600;font-size:12.5px}
+.sp-beat-tools .ic{width:14px;height:14px}
+.sp-tabs{flex-wrap:wrap}
+@media(max-width:1000px){.sp-head-left{width:100%}}
+@media(max-width:700px){.sp-head-right{margin-left:0;width:100%}.sp-vu canvas{width:150px}}
+
+/* beat manager window: transport on top, record lamp, genre kit select, back link */
+.sp-beat-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.sp-beat-top .sp-swing{margin-left:auto}
+.sp-rec{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface-2);font-weight:600}
+.sp-rec .ic{width:14px;height:14px;color:#f87171}
+.sp-rec.on{border-color:#f87171;background:color-mix(in srgb,#f87171 18%,var(--surface-2));animation:sp-rec 1s ease-in-out infinite}
+@keyframes sp-rec{50%{box-shadow:0 0 0 4px color-mix(in srgb,#f87171 25%,transparent)}}
+.sp-back{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;padding:4px 8px;border:0;background:none;color:var(--text-2);font-size:12px}
+.sp-preset{margin:0}
+@media(prefers-reduced-motion:reduce){.sp-rec.on{animation:none}}
+
+.sp-bpm{flex:none}.sp-bpm input{width:52px;flex:none}
+.sp-beat-top .sp-play{width:38px;height:38px;flex:none}
+.sp-beat{gap:8px}
+
+
+/* two cards with tabs on top, in the quiet card style of the Mix screen: the active tab melts into its card */
+.sp-side{gap:0}
+.sp-tabbar{display:flex;gap:6px;padding:0 30px;position:relative;z-index:2}
+.sp-tabbar button{display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 20px;border:1px solid var(--border);border-bottom:0;border-radius:14px 14px 0 0;background:color-mix(in srgb,var(--surface) 50%,var(--bg-2));color:var(--text-3);font-weight:650;font-size:13.5px;margin-top:4px;transition:background .15s,color .15s}
+.sp-tabbar button .ic{width:16px;height:16px}
+.sp-tabbar button:hover{color:var(--text)}
+.sp-tabbar button.on{margin-top:0;height:46px;margin-bottom:-1px;padding-bottom:1px;background:var(--surface);color:var(--text);box-shadow:inset 0 3px 0 var(--c)}
+.sp-tabbar button.on .ic{color:var(--c)}
+.sp-editor{position:relative;z-index:1;border-radius:24px;border-color:var(--border);box-shadow:var(--shadow-sm)}
+.sp-editor .sp-wavecard{padding:0;border:0;background:none;box-shadow:none;border-radius:0}

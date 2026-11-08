@@ -10,7 +10,10 @@
 // (EQ, trim, filter, tempo): the default sits at 12 o'clock / the centre, and each half of the
 // travel maps to its own side of the range (so a −26…+6 dB EQ still centres on 0 dB).
 
+import { posToGain, fmtDb } from '../features/mixer/faderLaw.js'
+
 const FMT = {
+  mixdb: (v) => `${fmtDb(posToGain(v))} dB`,
   db: (v) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toFixed(1)} dB`,
   pct: (v, min, max) => `${Math.round(((v - min) / (max - min)) * 100)}%`,
   filter: (v) => (Math.abs(v) < 0.02 ? 'Off' : v < 0 ? `Low-pass ${Math.round(-v * 100)}%` : `High-pass ${Math.round(v * 100)}%`),
@@ -33,13 +36,14 @@ function model(input) {
   const min = Number(input.min), max = Number(input.max), step = Number(input.step) || 0.01
   const def = input.dataset.default != null ? Number(input.dataset.default) : min
   const bipolar = def > min && def < max
+  const reset = input.dataset.reset != null ? Number(input.dataset.reset) : def // value a double-click goes back to
   const toPos = (v) => (bipolar ? (v <= def ? 0.5 * ((v - min) / (def - min)) : 0.5 + 0.5 * ((v - def) / (max - def))) : (v - min) / (max - min))
   const fromPos = (p) => {
     p = Math.max(0, Math.min(1, p))
     const v = bipolar ? (p <= 0.5 ? min + (p / 0.5) * (def - min) : def + ((p - 0.5) / 0.5) * (max - def)) : min + p * (max - min)
     return Math.round(v / step) * step
   }
-  return { min, max, def, bipolar, toPos, fromPos }
+  return { min, max, def, reset, bipolar, toPos, fromPos }
 }
 
 export function attachControls(root) {
@@ -97,7 +101,7 @@ export function attachControls(root) {
       grab.addEventListener('pointerup', up, { once: true })
       grab.addEventListener('pointercancel', up, { once: true })
     })
-    grab.addEventListener('dblclick', () => set(m.def))
+    grab.addEventListener('dblclick', () => set(m.reset))
     grab.addEventListener('wheel', (e) => { e.preventDefault(); set(m.fromPos(m.toPos(Number(input.value)) - Math.sign(e.deltaY) * (e.shiftKey ? 0.01 : 0.04))) }, { passive: false })
     input.addEventListener('input', () => render())
     el.title = 'Drag, scroll or use the arrow keys · double-click to reset'
