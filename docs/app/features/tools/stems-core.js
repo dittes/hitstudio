@@ -199,7 +199,7 @@ function findLoop(env, frames, frameSec) {
  * @returns {Promise<Record<'drums'|'bass'|'vocals'|'other', [Float32Array, Float32Array]> | null>} null when cancelled
  */
 export async function separateStems(left, right, sampleRate, { onProgress = () => {}, shouldCancel = () => false, params = {} } = {}) {
-  const P = { repQuantile: 0.35, drumRep: 0.35, sharpen: 1.6, centrePow: 2, vocalLow: 150, vocalHigh: 7000, ...params }
+  const P = { longSec: 0.55, steadyW: 0.5, repQuantile: 0.35, drumRep: 0.35, sharpen: 1.6, centrePow: 2, vocalLow: 150, vocalHigh: 7000, ...params }
   const len = left.length
   const frames = Math.ceil((len + N) / HOP) + 1
   const padLen = (frames + 1) * HOP
@@ -296,6 +296,10 @@ export async function separateStems(left, right, sampleRate, { onProgress = () =
   const bufF = new Float32Array(FREQ_KERNEL)
   const bufR = new Float32Array(repOffsets.length || 1)
   const bufD = new Float32Array(drumOffsets.length || 1)
+  // long time-median: sustained, steady notes (pads, organ, held guitar) are explained by it; a voice moves too fast
+  const longK = Math.min(41, Math.max(9, 2 * Math.round(P.longSec / frameSec / 2) + 1))
+  const bufL = new Float32Array(longK)
+  const halfL = longK >> 1
   const halfT = TIME_KERNEL >> 1
   const halfF = FREQ_KERNEL >> 1
   const eps = 1e-9
@@ -348,13 +352,25 @@ export async function separateStems(left, right, sampleRate, { onProgress = () =
       const cur = mag[base + k]
       let fg = 1 - mh // without a loop, fall back on "not harmonic" being unlikely vocal...
       let harmonicVoice = mh
+      let steady = 0
+      if (vocalBand[k] > 0) {
+        let q = 0
+        for (let t = f - halfL; t <= f + halfL; t++) {
+          if (t < 0 || t >= frames) continue
+          bufL[q++] = mag[t * BINS + k]
+        }
+        const HL = median(bufL, q)
+        steady = cur > eps ? Math.min(1, HL / cur) : 0
+        // without a loop to lean on, "voice" is whatever is neither steady nor percussive
+        if (!repFrames.length) harmonicVoice = (1 - steady * P.steadyW) * mh
+      }
       if (vocalBand[k] === 0) harmonicVoice = 0 // outside the vocal range nothing is taken as voice: skip the expensive part
       else if (repFrames.length) {
         for (let i = 0; i < repFrames.length; i++) bufR[i] = mag[repFrames[i] * BINS + k]
         const model = Math.min(median(bufR, repFrames.length, P.repQuantile), cur)
         const repShare = cur > eps ? model / cur : 1
         fg = 1 - repShare // what the loop does not explain
-        harmonicVoice = repeatConf * fg + (1 - repeatConf) * mh
+        harmonicVoice = repeatConf * fg * (1 - steady * P.steadyW) + (1 - repeatConf) * (1 - steady * P.steadyW) * mh
       }
       void fg
       const c = centre[base + k] / 255
