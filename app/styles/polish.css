@@ -205,3 +205,7 @@ html,body{touch-action:manipulation;-webkit-tap-highlight-color:transparent;-web
 button,a,input,select,label,summary,canvas,[role=button],[role=tab]{touch-action:manipulation}
 .sp-pad,.sp-wave,.beat-step,.dj-platter,.platter{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .sp-root:not(input){-webkit-touch-callout:none}
+
+/* ── visualizer: the top-left pill only shows while recording ── */
+.viz-title:not(:has(.viz-signal:not([hidden]))){display:none}
+.viz-top .viz-actions{margin-left:auto}

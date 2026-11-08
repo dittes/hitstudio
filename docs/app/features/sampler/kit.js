@@ -1,7 +1,7 @@
 // The factory kit: 16 sounds that were synthesized for HitStudio (see SOUND-SOURCES.md). Every pad can be replaced.
 // Pads are laid out like a classic 4×4 drum machine, and keyed to the computer keyboard in the same shape.
 
-export const PAD_KEYS = ['1', '2', '3', '4', 'q', 'w', 'e', 'r', 'a', 's', 'd', 'f', 'z', 'x', 'c', 'v']
+export const PAD_KEYS = ['1', '2', '3', '4', 'q', 'w', 'e', 'r', 'a', 's', 'd', 'f', 'y', 'x', 'c', 'v'] // the bottom row is Y X C V on a German keyboard; the Z key of a QWERTY keyboard sits in the same place and works too
 
 /** colour groups: one per row of four */
 export const GROUPS = [

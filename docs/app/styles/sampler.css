@@ -1,23 +1,20 @@
 /* ── Sampler: 16 pads + sound editor ─────────────────────────────── */
-.sp-root{height:100%;overflow:auto;padding:22px 24px 30px;display:flex;flex-direction:column;gap:18px;background:var(--bg)}
+.sp-root{height:100%;overflow:auto;padding:16px 24px 22px;display:flex;flex-direction:column;gap:14px;background:var(--bg)}
 .sp-root>*{flex:none}
-.sp-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap}
-.sp-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:750;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
-.sp-eyebrow .ic{width:14px;height:14px}
-.sp-title h1{font-size:clamp(24px,3vw,32px);margin:6px 0 6px;letter-spacing:-.02em}
-.sp-title p{margin:0;color:var(--text-2);font-size:13.5px;max-width:560px;line-height:1.5}
+.sp-head{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.sp-title h1{font-size:clamp(22px,2.6vw,28px);margin:0;letter-spacing:-.02em}
 .sp-head-actions{display:flex;gap:8px}
 .sp-btn{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 14px;border-radius:12px;font-weight:600}
 .sp-btn .ic{width:15px;height:15px}
 
-.sp-main{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(360px,.95fr);gap:18px;align-items:start}
+.sp-main{display:grid;grid-template-columns:auto minmax(360px,1fr);gap:22px;align-items:start;justify-content:start}
 @media(max-width:1000px){.sp-main{grid-template-columns:minmax(0,1fr)}}
 .sp-deck,.sp-editor{min-width:0}
 
 /* pads */
-.sp-deck{display:flex;flex-direction:column;gap:12px}
-.sp-pads{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:16px;border-radius:24px;border:1px solid var(--border);background:linear-gradient(180deg,var(--surface),color-mix(in srgb,var(--surface) 70%,var(--bg)));box-shadow:var(--shadow-sm),inset 0 1px 0 rgba(255,255,255,.05)}
-.sp-pad{--c:var(--accent);position:relative;aspect-ratio:1;display:flex;flex-direction:column;justify-content:space-between;align-items:stretch;padding:10px 11px 11px;border-radius:18px;border:1px solid color-mix(in srgb,var(--c) 28%,var(--border));background:radial-gradient(120% 90% at 50% 0%,color-mix(in srgb,var(--c) 20%,var(--surface-2)),var(--surface-2) 72%);color:var(--text);text-align:left;cursor:pointer;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;box-shadow:0 3px 0 color-mix(in srgb,var(--c) 22%,#000),inset 0 1px 0 rgba(255,255,255,.07);transition:transform .08s,box-shadow .12s,border-color .15s,filter .15s}
+.sp-deck{display:flex;flex-direction:column;gap:10px;min-width:0}
+.sp-pads{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;width:min(100%,max(300px,calc(100dvh - 300px)));max-width:560px}
+.sp-pad{--c:var(--accent);position:relative;aspect-ratio:1;display:flex;flex-direction:column;justify-content:space-between;align-items:stretch;padding:8px 9px 9px;border-radius:16px;border:1px solid color-mix(in srgb,var(--c) 28%,var(--border));background:radial-gradient(120% 90% at 50% 0%,color-mix(in srgb,var(--c) 20%,var(--surface-2)),var(--surface-2) 72%);color:var(--text);text-align:left;cursor:pointer;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;box-shadow:0 3px 0 color-mix(in srgb,var(--c) 22%,#000),inset 0 1px 0 rgba(255,255,255,.07);transition:transform .08s,box-shadow .12s,border-color .15s,filter .15s}
 .sp-pad:hover{border-color:color-mix(in srgb,var(--c) 60%,var(--border));filter:brightness(1.06)}
 .sp-pad:active,.sp-pad.hit{transform:translateY(2px);box-shadow:0 1px 0 color-mix(in srgb,var(--c) 22%,#000),inset 0 1px 0 rgba(255,255,255,.07)}
 .sp-pad.selected{border-color:var(--c);box-shadow:0 3px 0 color-mix(in srgb,var(--c) 30%,#000),0 0 0 2px color-mix(in srgb,var(--c) 55%,transparent),0 12px 28px -14px var(--c)}
@@ -82,8 +79,7 @@
 .sp-root.is-full{position:fixed;inset:0;z-index:300;height:auto;padding:14px 18px 18px;padding-left:max(18px,env(safe-area-inset-left));padding-right:max(18px,env(safe-area-inset-right));padding-bottom:max(18px,env(safe-area-inset-bottom))}
 .sp-root:fullscreen{padding:14px 18px 18px;overflow:auto}
 .sp-root:-webkit-full-screen{padding:14px 18px 18px;overflow:auto}
-.sp-root.is-full .sp-title p,.sp-root:fullscreen .sp-title p,.sp-root:-webkit-full-screen .sp-title p{display:none}
-.sp-root.is-full .sp-title h1,.sp-root:fullscreen .sp-title h1,.sp-root:-webkit-full-screen .sp-title h1{margin:4px 0 0;font-size:24px}
+.sp-root.is-full .sp-title p,.sp-root:fullscreen .sp-title p,.sp-root:-webkit-full-screen .sp-root.is-full .sp-title h1,.sp-root:fullscreen .sp-title h1,.sp-root:-webkit-full-screen .sp-title h1{margin:4px 0 0;font-size:24px}
 .sp-root.is-full .sp-main,.sp-root:fullscreen .sp-main{flex:1;min-height:0}
 html.sp-locked,html.sp-locked body{overflow:hidden}
 
@@ -124,3 +120,10 @@ html.sp-locked,html.sp-locked body{overflow:hidden}
 .sp-sb-foot button{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 14px;border-radius:12px;font-weight:600}
 .sp-sb-foot .ic{width:15px;height:15px}
 @media(max-width:1000px){.sp-sb-list{height:300px}.sp-sound-cat{display:none}.sp-sound{grid-template-columns:36px minmax(0,1fr) auto auto}}
+
+/* in fullscreen the pads use all the room they can get */
+.sp-root.is-full .sp-pads,.sp-root:fullscreen .sp-pads,.sp-root:-webkit-full-screen .sp-pads{width:min(100%,calc(100dvh - 130px));max-width:none;gap:14px}
+.sp-root.is-full .sp-pad,.sp-root:fullscreen .sp-pad,.sp-root:-webkit-full-screen .sp-pad{border-radius:22px;padding:12px 14px 14px}
+.sp-root.is-full .sp-pad-name,.sp-root:fullscreen .sp-pad-name,.sp-root:-webkit-full-screen .sp-pad-name{font-size:15px}
+.sp-root.is-full .sp-legend,.sp-root:fullscreen .sp-legend,.sp-root:-webkit-full-screen .sp-legend{display:none}
+@media(max-width:1000px){.sp-main{grid-template-columns:minmax(0,1fr)}.sp-pads{width:100%;max-width:none}}

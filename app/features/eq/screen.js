@@ -32,7 +32,7 @@ export function mountEq(container) {
   const eq0 = eqOf(S().project);
   container.innerHTML = `<section class="eq-root">
     <header class="eq-head">
-      <div><h1>Equalizer</h1><p>Shapes everything you hear: songs, beats, the DJ decks and your mix. It is also applied when you export.</p></div>
+      <div><h1>Equalizer</h1></div>
       <div class="eq-head-actions">
         <label class="eq-power"><input type="checkbox" data-eq-enabled ${eq0.enabled ? 'checked' : ''} /><span class="eq-switch" aria-hidden="true"></span><span class="eq-power-label">${eq0.enabled ? 'On' : 'Off'}</span></label>
         <button data-action="eq-reset">${icon('undo')}<span>Reset to flat</span></button>

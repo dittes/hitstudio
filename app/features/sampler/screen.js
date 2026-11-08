@@ -103,7 +103,7 @@ export function mountSampler(container) {
 
   container.innerHTML = `<section class="sp-root hw">
     <header class="sp-head">
-      <div class="sp-title"><span class="sp-eyebrow">${icon('sampler')} Sampler</span><h1>Play your <span class="grad-text">sounds</span></h1><p>Tap the pads or use your keyboard. Every pad can hold your own sound: drop a file on it, or record one.</p></div>
+      <div class="sp-title"><h1>Play your <span class="grad-text">sounds</span></h1></div>
       <div class="sp-head-actions"><button class="sp-btn" data-sp-full aria-pressed="false" title="Fullscreen">${icon('maximize')}<span>Fullscreen</span></button><button class="sp-btn" data-sp-stop>${icon('stop')}<span>Stop all</span></button><button class="sp-btn" data-sp-resetkit>${icon('history')}<span>Reset kit</span></button></div>
     </header>
     <div class="sp-main">
@@ -273,7 +273,8 @@ export function mountSampler(container) {
     if (e.target.closest?.('input[type=text],input:not([type]),input[type=search],textarea,select,[contenteditable=true]')) return
     if (e.code === 'Space') { e.preventDefault(); e.stopImmediatePropagation(); stopAllVoices(); return }
     if (e.repeat) return
-    const i = PAD_KEYS.indexOf(e.key.toLowerCase())
+    const key = e.key.toLowerCase()
+    const i = key === 'z' ? 12 : PAD_KEYS.indexOf(key) // Y (QWERTZ) and Z (QWERTY) are the same physical key
     if (i < 0) return
     e.preventDefault()
     e.stopImmediatePropagation()

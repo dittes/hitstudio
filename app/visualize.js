@@ -36,7 +36,7 @@ export function mountVisualize(container, actions) {
   let mode=stored('renderer','webgl'),release=()=>{},disposed=false,raf=0,lastCheck=0,lastSwitch=performance.now(),lastDrop=sampleAnalysis().dropCount,recorder=null,recordAt=0,capture=null,starting=false,lastActivity=performance.now();
   container.innerHTML=`<section class="viz controls-visible" data-theme="dark" aria-label="Music visualization">
     <canvas aria-label="Audio-reactive visualization"></canvas><div class="viz-fade"></div>
-    <div class="viz-top"><div class="viz-title"><button class="ghost" data-action="welcome">HitStudio</button><span class="scene-name"></span><span class="badge viz-signal" hidden></span></div><div class="viz-actions">
+    <div class="viz-top"><div class="viz-title"><span class="badge viz-signal" hidden></span></div><div class="viz-actions">
       <button class="icon" data-action="library" aria-label="Song list" title="Song list">${icon('library')}</button>
       <button class="icon" data-action="record-video" aria-label="Record video" title="Record video">${icon('record')}</button>
       <button class="icon" data-action="immersive" aria-label="Enter immersive view" title="Immersive view">${icon('eye')}</button>
@@ -135,7 +135,7 @@ export function mountVisualize(container, actions) {
     form.onsubmit=e=>{e.preventDefault();const data=new FormData(form),format=data.get('format'),layout=data.get('layout');persist('videoFormat',format);persist('videoLayout',layout);closeModal();void beginRecording(format,layout)};
   }
   function scrollToScene(){const card=root.querySelector(`[data-scene="${settings.want}"]`);if(card&&!panel.hidden)requestAnimationFrame(()=>{if(!disposed)card.scrollIntoView({block:'nearest',behavior:'smooth'})})}
-  function syncSceneUI(){const s=SCENES[settings.want],fam=familyOf(settings.want);root.classList.toggle('viz-analysis',!!s.analysis);root.querySelector('.viz-bar-name').textContent=s.name;root.querySelector('.viz-bar-family').textContent=fam.name;root.querySelector('.scene-name').textContent=s.name;root.querySelector('.spectral-window').hidden=s.id==='density';root.querySelectorAll('[data-scene]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.scene)===settings.want)));root.querySelector('canvas').setAttribute('aria-label',`${s.name} audio visualization`)}
+  function syncSceneUI(){const s=SCENES[settings.want],fam=familyOf(settings.want);root.classList.toggle('viz-analysis',!!s.analysis);root.querySelector('.viz-bar-name').textContent=s.name;root.querySelector('.viz-bar-family').textContent=fam.name;root.querySelector('.spectral-window').hidden=s.id==='density';root.querySelectorAll('[data-scene]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.scene)===settings.want)));root.querySelector('canvas').setAttribute('aria-label',`${s.name} audio visualization`)}
   function selectScene(index){settings.want=index;persist('scene',index);syncSceneUI();if(!panel.hidden)showFamily(familyOf(index).id);scrollToScene()}
   root.addEventListener('click',e=>{
     if(e.target.closest('[data-clear-spectrum]'))clearSpectralHistory();

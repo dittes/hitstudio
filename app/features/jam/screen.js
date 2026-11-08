@@ -27,7 +27,7 @@ export function mountJam(container) {
   const chip = (attr, id, label, on, ic) => `<button class="jam-chip ${on ? 'on' : ''}" data-${attr}="${id}" aria-pressed="${on}">${ic ? icon(ic) : ''}<span>${escape(label)}</span></button>`;
   container.innerHTML = `<section class="jam-root hw">
     <header class="jam-head">
-      <div class="jam-title"><span class="jam-eyebrow">${icon('guitar')} Jam</span><h1>Your <span class="grad-text">virtual band</span></h1><p>Pick a style and press play. The band keeps going and improvises, and you play along on the pads, your keyboard or a MIDI keyboard.</p></div>
+      <div class="jam-title"><h1>Your <span class="grad-text">virtual band</span></h1></div>
       <div class="jam-transport">
         <button class="jam-rec" data-jam-rec aria-pressed="false" title="Record the jam onto your timeline">${icon('record')}<span>Record</span></button>
         <button class="jam-play" data-jam-play aria-label="Start the band">${icon('play')}</button>
