@@ -44,6 +44,7 @@ export function mountStudio(mode, container, actions){
  let disposed=false,raf=0,unsubs=[];
  const S=()=>useStore.getState();
  const mutate=(label,fn,coalesce)=>S().mutate(label,fn,{coalesce});
+ if(mode==='imprint'){container.innerHTML=imprintHTML();return {dispose(){}}}
  if(mode==='tools'){
   container.innerHTML=toolsHTML(QUICK_TASKS);return {dispose(){}};
  }
@@ -221,3 +222,4 @@ export async function studioAction(action){
 import { DEMOS } from './features/dj/demoLoops.js';
 import { QUICK_TASKS, quickTask } from './features/io/quicktasks.js';
 import { splitClip } from './features/tools/stems.js';
+import { imprintHTML } from './features/legal/imprint.js';

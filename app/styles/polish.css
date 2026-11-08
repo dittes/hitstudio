@@ -181,3 +181,21 @@ button.danger{color:#f87171;border-color:color-mix(in srgb,#f87171 40%,var(--bor
 .kar-btns .ic,.kar-foot .ic{width:15px;height:15px}
 .kar-foot{align-items:center;gap:12px}
 .kar-note{margin:0;font-size:12px;line-height:1.5}
+
+/* ---- imprint screen ---- */
+.imp-root{max-width:1020px;margin:0 auto;padding:28px 28px 48px;display:flex;flex-direction:column;gap:18px;width:100%}
+.imp-head{display:flex;align-items:center;gap:16px;margin-bottom:4px}
+.imp-ic{display:grid;place-items:center;width:52px;height:52px;border-radius:16px;background:var(--accent-grad);color:#fff;box-shadow:0 10px 26px -12px var(--accent-2)}
+.imp-ic .ic{width:24px;height:24px}
+.imp-head h1{margin:0;font-size:30px;letter-spacing:-.03em;line-height:1.1}
+.imp-head p{margin:2px 0 0;font-size:13px}
+.imp-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.imp-grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.imp-card{padding:20px 22px;border-radius:20px;border:1px solid var(--border);background:var(--surface)}
+.imp-card h2{margin:0 0 10px;font-size:16px;letter-spacing:-.01em}
+.imp-card p{margin:0 0 10px;line-height:1.6;font-size:13.5px;color:var(--text-2)}
+.imp-card p:last-child{margin-bottom:0}
+.imp-card address{font-style:normal;line-height:1.65;font-size:14px;color:var(--text)}
+.imp-card a{color:var(--accent)}
+.imp-card .muted{color:var(--text-3);font-size:12.5px}
+@media(max-width:900px){.imp-grid,.imp-grid-2{grid-template-columns:1fr}.imp-root{padding:18px 14px 32px}}
