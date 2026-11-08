@@ -24,7 +24,7 @@ export const source = () => active;
 export const currentIndex = () => current;
 export const settings = () => ({ repeat, shuffle });
 export const setRepeat = () => { repeat = !repeat; notify() };
-export const setShuffle = () => { shuffle = !shuffle; notify() };
+export const setShuffle = () => { shuffle = !shuffle; planNext(); notify() };
 let dbPromise;
 function db() {
   if (!dbPromise) dbPromise = new Promise((resolve, reject) => {
@@ -103,20 +103,39 @@ export function nowPlaying() {
 }
 export function currentDuration() { return Number.isFinite(media.duration)?media.duration:0 }
 export function isBusy(){return busy}
+// The next song is chosen and rendered while the current one plays, so the changeover has no gap.
+let planned = null;
+function prefetch(item) {
+  if (!item || item.url || !item.get || item.rendering) return item?.rendering;
+  item.rendering = item.get().then((buffer) => { item.url = URL.createObjectURL(encodeWav(audioBufferToPcm(buffer), 16)) }).catch(() => {}).finally(() => { item.rendering = null });
+  return item.rendering;
+}
+function planNext() {
+  planned = null;
+  if (!songs.length || repeat || current < 0) return;
+  let i = shuffle ? Math.floor(Math.random() * songs.length) : current + 1;
+  if (shuffle && songs.length > 1 && i === current) i = (i + 1) % songs.length;
+  if (i >= songs.length) return;
+  planned = songs[i];
+  setTimeout(() => { if (planned && songs[current] && active === 'queue') void prefetch(planned) }, 1500); // let the current song start cleanly first
+}
 export async function playSong(index) {
   const item=songs[index];if(!item)return;
   await claimSource('queue');const token=loadToken;current=index;busy=true;notify();
   try {
+    if(!item.url && item.rendering)await item.rendering;
     if(!item.url && item.get){const buffer=await item.get();const blob=encodeWav(audioBufferToPcm(buffer),16);item.url=URL.createObjectURL(blob)}
     if(token!==loadToken)return;
     media.crossOrigin='anonymous';media.src=item.url;media.load();await media.play();
+    if(token===loadToken)planNext();
   } catch(error){if(token===loadToken)toast({title:'Could not play this song',body:String(error),kind:'error'})}
   finally{if(token===loadToken){busy=false;notify()}}
 }
 export async function nextSong(direction=1) {
   if(!songs.length){toast('Add songs to your list first.');return}
-  let index=shuffle?Math.floor(Math.random()*songs.length):(current+direction+songs.length)%songs.length;
-  if(shuffle&&songs.length>1&&index===current)index=(index+1)%songs.length;
+  let index=direction===1&&planned?songs.indexOf(planned):-1;
+  if(index<0){index=shuffle?Math.floor(Math.random()*songs.length):(current+direction+songs.length)%songs.length;
+  if(shuffle&&songs.length>1&&index===current)index=(index+1)%songs.length}
   await playSong(index);
 }
 export async function togglePlayback() {

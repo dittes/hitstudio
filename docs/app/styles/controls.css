@@ -1,0 +1,28 @@
+/* Every slider in the app wears the hardware look of the Equalizer: dark groove, lit fill, grey fader cap with a white line.
+   (Knobs and faders built with ui/controls.js hide their native input, so these rules never touch them.) */
+input[type=range]{
+  --p:50%;--fill:var(--accent);
+  -webkit-appearance:none;appearance:none;height:24px;margin:0;padding:0;background:transparent;border:0;cursor:pointer;
+  accent-color:var(--accent);touch-action:pan-y;
+}
+input[type=range]:focus{outline:none}
+input[type=range]::-webkit-slider-runnable-track{height:5px;border-radius:3px;background:linear-gradient(90deg,var(--fill) var(--p),var(--hw-groove,#0b0b10) var(--p));box-shadow:0 1px 0 var(--hw-edge,rgba(255,255,255,.1)),inset 0 1px 2px rgba(0,0,0,.65)}
+input[type=range]::-moz-range-track{height:5px;border-radius:3px;background:var(--hw-groove,#0b0b10);box-shadow:0 1px 0 var(--hw-edge,rgba(255,255,255,.1)),inset 0 1px 2px rgba(0,0,0,.65)}
+input[type=range]::-moz-range-progress{height:5px;border-radius:3px;background:var(--fill)}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:18px;height:22px;margin-top:-8.5px;border-radius:5px;border:0;
+  background:linear-gradient(#fff,#fff) center/2px 12px no-repeat,linear-gradient(180deg,var(--hw-cap-top,#5b5b68),var(--hw-cap-bot,#24242c));
+  box-shadow:0 3px 7px rgba(0,0,0,.5),0 1px 0 rgba(255,255,255,.22) inset;
+}
+input[type=range]::-moz-range-thumb{
+  width:18px;height:22px;border-radius:5px;border:0;
+  background:linear-gradient(#fff,#fff) center/2px 12px no-repeat,linear-gradient(180deg,#5b5b68,#24242c);
+  box-shadow:0 3px 7px rgba(0,0,0,.5),0 1px 0 rgba(255,255,255,.22) inset;
+}
+input[type=range]:hover::-webkit-slider-thumb,input[type=range]:active::-webkit-slider-thumb{filter:brightness(1.18)}
+input[type=range]:focus-visible::-webkit-slider-thumb{outline:2px solid var(--accent);outline-offset:3px}
+input[type=range]:focus-visible::-moz-range-thumb{outline:2px solid var(--accent);outline-offset:3px}
+input[type=range]:disabled{opacity:.45;cursor:default}
+[data-theme='light'] input[type=range]{--hw-groove:#2a2833;--hw-edge:rgba(20,10,60,.15)}
+/* the colour of the lit part follows the screen's accent where one is set */
+.cr-f input[type=range],.create-mixer input[type=range],.cr-strip input[type=range]{--fill:var(--pc,var(--accent))}

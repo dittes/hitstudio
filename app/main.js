@@ -27,10 +27,12 @@ import { mountStudio, studioAction, splitSelection, deleteSelection, duplicateSe
 import { createUndo, createRedo, useCreateHistory } from './features/create/state.js';
 import { showSettings } from './settings.js';
 import { showLibrary, hideLibrary, toggleLibrary, renderLibrary } from './library.js';
+import { initRangeFill } from './ui/range-fill.js';
 import { welcome, showModal, closeModal, showSongMenu, showEffects, showEffectParams, showProcesses, showProcess, showExport, showRecord } from './dialogs.js';
 import * as music from './media.js';
 
 const app=$('#app'),library=$('#library'),player=$('#player');
+initRangeFill();
 let workspace=$('#workspace');
 const modes=[['create','Create'],['edit','Edit'],['mix','Mix'],['eq','EQ'],['dj','DJ'],['jam','Jam'],['sampler','Sampler'],['tools','Tools'],['visualize','Visualize']];
 let fullscreenPreviousImmersive=false,fullscreenRequested=false;

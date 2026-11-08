@@ -151,13 +151,13 @@ export function mountVisualize(container, actions) {
   root.addEventListener('keydown',e=>{const tab=e.target.closest('[data-family]');if(!tab||!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();e.stopPropagation();const tabs=[...root.querySelectorAll('[data-family]')],next=tabs[(tabs.indexOf(tab)+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length];next.focus();showFamily(next.dataset.family)});
   root.addEventListener('input',e=>{const k=e.target.dataset.setting;if(k==='intensity')setIntensity(Number(e.target.value));if(k==='sens'||k==='speed'||k==='glow'){settings[k]=Number(e.target.value);persist(k,settings[k])}});
   root.addEventListener('change',e=>{if(e.target.dataset.setting==='spectralWindow'){settings.spectralWindow=Number(e.target.value);persist('spectralWindow',settings.spectralWindow)}if(e.target.dataset.setting==='particles'){settings.particles=e.target.checked;persist('particles',settings.particles)}});
-  let lastHint='';
+  let lastHint='',idleSince=0;
   const loop=now=>{
     if(disposed)return;raf=requestAnimationFrame(loop);if(document.hidden)return;spectralHistory();if(now-lastCheck<200)return;lastCheck=now;{const eng=getEngine();if(eng.ctx.state!=='running'&&music.isPlaying())void eng.resume()}idle(now);
     if(!panel.hidden)paintAnalysisPreviews(root,PALETTES[settings.palette].colors,settings.spectralWindow);
     const isAnalysis=!!SCENES[settings.want].analysis;settings.plotBottom=app.classList.contains('immersive')?0:root.querySelector('.viz-dock').offsetHeight+20;
     const a=sampleAnalysis();signal.textContent=recorder?`REC ${Math.floor((now-recordAt)/1000)}s`:'';signal.hidden=!recorder;
-    const status=isAnalysis?'analysis':a.silent&&!music.isPlaying()?'paused':'playing';
+    const idleNow=a.silent&&!music.isPlaying()&&!music.isBusy();idleSince=idleNow?(idleSince||now):0;const status=isAnalysis?'analysis':idleNow&&now-idleSince>1500?'paused':'playing'; // a short gap between two songs is not 'nothing playing'
     if(status!==lastHint){lastHint=status;root.classList.toggle('viz-paused',status==='paused');hint.innerHTML=status==='paused'?`${emptyState({title:'Your sound, <span class="grad-text">in full colour</span>',sub:'Play a song, tune into live radio or bring your studio mix to life.',actions:`<button class="primary" data-action="add-songs">${icon('folder')} Add songs</button><button data-action="library">${icon('library')} Open library</button><button data-action="library-radio">${icon('radio')} Live radio</button>`})}`:'';if(status==='paused')poke()}
     if(settings.auto&&!a.silent&&now-lastSwitch>16000&&(a.dropCount!==lastDrop||now-lastSwitch>30000)){lastSwitch=now;const pool=SCENE_ORDER.filter(i=>i!==settings.want&&!SCENES[i].analysis);selectScene(pool[Math.floor(Math.random()*pool.length)])}
     lastDrop=a.dropCount;
