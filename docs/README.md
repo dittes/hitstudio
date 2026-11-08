@@ -10,7 +10,7 @@ Serve this folder with any static HTTP server, or use `npm run dev` / `node scri
 
 ## Studio
 
-The sidebar contains Create, Edit, Mix, DJ, Tools, then Visualize. Tools contains the quick tasks formerly shown in the welcome dialog. Lift the player bar with its handle (or swipe it upward) to open songs and live radio, and a direct radio-stream input underneath. Swipe down or press the handle again to close it. Local song files are stored in IndexedDB on this browser; original demo songs are synthesized locally. Add a library song to the timeline explicitly to edit or export it.
+The sidebar contains Create, Edit, Mix, EQ, DJ, Jam, Sampler, Tools, then Visualize (Cmd/Ctrl + 1–9). The Sampler is a 4×4 pad instrument with 16 original factory sounds and a browser of 243 original sounds (assets/sampler, made by scripts/make-sampler-kit.py and make-sampler-library.py); every pad can be given a library sound, a file, a drop (from your computer or dragged out of the browser) or a microphone recording. Your own sounds are stored in this browser only. A Fullscreen button gives pads the whole screen. Tools contains the quick tasks formerly shown in the welcome dialog. Lift the player bar with its handle (or swipe it upward) to open songs and live radio, and a direct radio-stream input underneath. Swipe down or press the handle again to close it. Local song files are stored in IndexedDB on this browser; original demo songs are synthesized locally. Add a library song to the timeline explicitly to edit or export it.
 
 Entering Beat Maker stops normal playback and selects the beat source. Tips can be dismissed and restored through Search actions → Show tips. Section switching has a quiet 90ms sound, excluded from recorded music.
 

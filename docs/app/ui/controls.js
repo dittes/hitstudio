@@ -16,6 +16,10 @@ const FMT = {
   filter: (v) => (Math.abs(v) < 0.02 ? 'Off' : v < 0 ? `Low-pass ${Math.round(-v * 100)}%` : `High-pass ${Math.round(v * 100)}%`),
   tempo: (v) => `${v > 0 ? '+' : v < 0 ? '−' : '±'}${Math.abs(v * 100).toFixed(1)}%`,
   level: (v) => `${Math.round(v * 100)}%`,
+  semi: (v) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(Math.round(v * 10) / 10)} st`,
+  sec: (v) => (v < 1 ? `${Math.round(v * 1000)} ms` : `${v.toFixed(2)} s`),
+  pan: (v) => (Math.abs(v) < 0.03 ? 'Centre' : v < 0 ? `L ${Math.round(-v * 100)}` : `R ${Math.round(v * 100)}`),
+  cutoff: (v) => (v > 0.985 ? 'Open' : `${Math.round(120 * Math.pow(20000 / 120, v))} Hz`),
   xf: (v) => (Math.abs(v - 0.5) < 0.02 ? 'Centre' : v < 0.5 ? `A ${Math.round((0.5 - v) * 200)}%` : `B ${Math.round((v - 0.5) * 200)}%`),
 }
 

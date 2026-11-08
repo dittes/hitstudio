@@ -18,6 +18,10 @@ Whether a given jurisdiction treats linking to a public stream as needing a lice
 
 The former bundled CC0 Freesound pack has been removed.
 
+## Sampler kit
+
+The 16 factory sounds in assets/sampler/ (kick, snare, clap, rim, two hats, tom, crash, 808, bass stab, Am9 chord, pluck, bell, vocal "ooh", riser, impact) are original sounds synthesized from scratch for HitStudio with scripts/make-sampler-kit.py (numpy and scipy: oscillators, filtered noise, FM and Karplus-Strong synthesis; the vocal is a formant synth, not a recording of a person). They contain no recorded samples and no third-party material, and the script recreates them exactly. The sound browser adds a library of 227 more original sounds (kicks, snares, claps, hats, percussion, 808s, synth bass, chord stabs, keys, bells, leads, voices, FX), also synthesized from scratch with scripts/make-sampler-library.py (numpy, scipy and ffmpeg for the lossless FLAC files; deterministic). Sounds you load into a pad yourself are stored only in your browser (IndexedDB) and are never uploaded.
+
 ## Runtime library notices
 
 Three.js and Immer are MIT licensed. The MP3 encoder lamejs is LGPL licensed; its license and bundled source are distributed in vendor/. These are software licenses, separate from the sound recordings’ CC0 terms.

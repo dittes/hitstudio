@@ -199,3 +199,9 @@ button.danger{color:#f87171;border-color:color-mix(in srgb,#f87171 40%,var(--bor
 .imp-card a{color:var(--accent)}
 .imp-card .muted{color:var(--text-3);font-size:12.5px}
 @media(max-width:900px){.imp-grid,.imp-grid-2{grid-template-columns:1fr}.imp-root{padding:18px 14px 32px}}
+
+/* ── touch devices: no double-tap zoom, no text-selection callouts while playing ── */
+html,body{touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+button,a,input,select,label,summary,canvas,[role=button],[role=tab]{touch-action:manipulation}
+.sp-pad,.sp-wave,.beat-step,.dj-platter,.platter{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.sp-root:not(input){-webkit-touch-callout:none}

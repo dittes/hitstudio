@@ -1,6 +1,7 @@
 import { getEngine } from './core/engine.js';
 import { useStore, makeTrack, makeClip } from './core/store.js';
 import { buffers } from './core/buffers.js';
+import { stopAllVoices } from './features/sampler/engine.js';
 import { stopSeq, startSeq, usePlaying } from './features/create/sequencer.js';
 import { getDJ, peekDJ } from './features/dj/engine.js';
 import { useDJ } from './features/dj/state.js';
@@ -72,6 +73,7 @@ export function addDemoSongs() {
   notify();
 }
 export function stopAll() {
+  stopAllVoices();
   loadToken++;busy=false;media.pause();
   try{getEngine().pause()}catch{}
   stopSeq();stopJam();const dj=peekDJ();if(dj){dj.cancelAuto();dj.decks.forEach(d=>d.pause());if(dj.recording)dj.stopRecording()}
