@@ -1,0 +1,31 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; }
+    #ed-cam { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; background: #0c0c10; filter: url(#ed-blur); box-shadow: -30px 0 80px rgba(0, 0, 0, 0.6); }
+    #ed-video { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; }
+    .label { position: absolute; left: 120px; bottom: 120px; padding: 18px 30px 22px; background: #f5f3ff; color: #0c0c10; font-family: "Inter", sans-serif; font-weight: 800; font-size: 76px; letter-spacing: -0.03em; line-height: 1; white-space: nowrap; }
+  </style>
+  <div id="root" data-composition-id="edit" data-width="1920" data-height="1080">
+    <svg width="0" height="0" style="position: absolute"><filter id="ed-blur" x="-10%" width="120%"><feGaussianBlur id="ed-b" stdDeviation="0 0" /></filter></svg>
+    <div id="ed-cam" data-layout-allow-overflow>
+      <video id="ed-video" class="clip" src="assets/ui/edit.mp4" muted playsinline data-start="0" data-duration="3.184" data-media-start="0.5" data-track-index="1"></video>
+    </div>
+    <div id="ed-label" class="label">Arrange it</div>
+  </div>
+  <script>
+    (function () {
+      var tl = gsap.timeline({ paused: true });
+      // enters from the right over Create (time runs forward)
+      tl.fromTo("#ed-cam", { x: 1920, scale: 1.25, transformOrigin: "260px 330px" }, { x: 0, duration: 0.3, ease: "power2.out" }, 0);
+      tl.fromTo("#ed-b", { attr: { stdDeviation: "60 0" } }, { attr: { stdDeviation: "0 0" }, duration: 0.3, ease: "power2.out" }, 0);
+      // slow push toward the playhead and the arranged sections
+      tl.to("#ed-cam", { scale: 1.38, duration: 2.6, ease: "power1.inOut" }, 0.3);
+      tl.fromTo("#ed-label", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.3, ease: "power3.out" }, 0.45);
+      // leaves to the left as Mix arrives
+      tl.to(["#ed-cam", "#ed-label"], { x: -1920, duration: 0.3, ease: "power2.in" }, 2.884);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["edit"] = tl;
+    })();
+  </script>
+</template>

@@ -1,0 +1,146 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; background: #06050b; }
+    #orb-app { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 996px 536px; }
+    #orb-view { position: absolute; left: 72px; top: 56px; width: 1848px; height: 960px; overflow: hidden; background: #06050b; }
+    #orb-canvas { position: absolute; left: -36px; top: -60px; width: 1920px; height: 1080px; transform-origin: 960px 540px; }
+    #orb-chrome { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+  </style>
+  <div id="root" data-composition-id="orb" data-width="1920" data-height="1080">
+    <div id="orb-app" data-layout-allow-overflow>
+      <div id="orb-view"><canvas id="orb-canvas" width="1920" height="1080"></canvas></div>
+      <img id="orb-chrome" src="assets/ui/viz-chrome.png" alt="" />
+    </div>
+  </div>
+  <script src="assets/orb-features.js"></script>
+  <script>
+    (function () {
+      var DUR = 27.692;
+      var clock = { t: 0 };
+      var host = { render: null, ready: null };
+      window.__hsOrb = host;
+      window.__hf = window.__hf || {};
+      window.__hf.buildReady = window.__hf.buildReady || {};
+      window.__hf.buildReady["orb"] = new Promise(function (r) { host.ready = r; });
+
+      // Full bleed: the in-app view (1848x960) scaled to cover the frame.
+      var FULL = { scale: 1.125, x: -36, y: 4 };
+      var IN_APP = { scale: 1, x: 0, y: 0 };
+      var tl = gsap.timeline({ paused: true });
+      tl.to(clock, { t: DUR, duration: DUR, ease: "none" }, 0);
+      // render after every tween of this frame has applied (the lens included)
+      tl.eventCallback("onUpdate", function () { if (host.render) host.render(clock.t); });
+
+      // 1. hook: full bleed, then the camera pulls back into the Visualize screen
+      tl.fromTo("#orb-app", { scale: FULL.scale, x: FULL.x, y: FULL.y }, { scale: FULL.scale, x: FULL.x, y: FULL.y, duration: 0.01 }, 0);
+      tl.fromTo("#orb-chrome", { opacity: 0 }, { opacity: 0, duration: 0.01 }, 0);
+      tl.to("#orb-app", { scale: IN_APP.scale, x: 0, y: 0, duration: 0.9, ease: "power3.inOut" }, 3.4);
+      tl.to("#orb-chrome", { opacity: 1, duration: 0.35, ease: "power2.out" }, 3.45);
+
+      // 6. the drop: back to full bleed with a punch on the downbeat
+      tl.set("#orb-chrome", { opacity: 0 }, 16.154);
+      tl.fromTo("#orb-app", { scale: 1.42, x: FULL.x, y: FULL.y }, { scale: FULL.scale, x: FULL.x, y: FULL.y, duration: 0.7, ease: "expo.out", immediateRender: false }, 16.154);
+
+      // 7. claim: the Orb steps aside to the right, then shrinks to the logo's spot
+      // The frame stays full bleed; the 3D camera (lens below) moves the core right and shrinks it.
+      var lens = (host.lens = { dx: 0, dy: 0, zoom: 1 });
+      tl.to(lens, { dx: 460, zoom: 0.62, duration: 0.6, ease: "power3.inOut" }, 23.077);
+      // then a circular iris closes onto the core as it travels to where the logo lands
+      tl.fromTo("#root", { clipPath: "circle(1400px at 1420px 540px)" }, { clipPath: "circle(1400px at 1420px 540px)", duration: 0.01, immediateRender: false }, 27.0);
+      tl.to("#root", { clipPath: "circle(86px at 960px 465px)", duration: 0.62, ease: "power3.in" }, 27.07);
+      tl.to(lens, { dx: 0, dy: -75, zoom: 0.17, duration: 0.62, ease: "power3.in" }, 27.07);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["orb"] = tl;
+    })();
+  </script>
+  <script type="module">
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.187.0/+esm";
+    import { EffectComposer } from "https://cdn.jsdelivr.net/npm/three@0.187.0/examples/jsm/postprocessing/EffectComposer.js/+esm";
+    import { RenderPass } from "https://cdn.jsdelivr.net/npm/three@0.187.0/examples/jsm/postprocessing/RenderPass.js/+esm";
+    import { UnrealBloomPass } from "https://cdn.jsdelivr.net/npm/three@0.187.0/examples/jsm/postprocessing/UnrealBloomPass.js/+esm";
+    import { OutputPass } from "https://cdn.jsdelivr.net/npm/three@0.187.0/examples/jsm/postprocessing/OutputPass.js/+esm";
+    import { createOrb, createAmbientParticles } from "./assets/orb/scene.js";
+
+    const host = window.__hsOrb;
+    const F = window.ORB_FEATURES;
+    const W = 1920, H = 1080, HZ = 60, DT = 1 / HZ;
+    const PAL = ["#a78bfa", "#f472b6", "#fb923c", "#38bdf8"]; // HitStudio palette (scenes/types.js)
+
+    // Same renderer setup as app/features/visualizer/renderer3d.js
+    const gpu = new THREE.WebGLRenderer({ canvas: document.getElementById("orb-canvas"), antialias: false, alpha: false, preserveDrawingBuffer: true });
+    gpu.setPixelRatio(1);
+    gpu.setSize(W, H, false);
+    gpu.toneMapping = THREE.ACESFilmicToneMapping;
+    gpu.toneMappingExposure = 0.85;
+    gpu.setClearColor(0x06050b, 1);
+
+    function mulberry32(a) { return function () { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+    let S = null;
+    function build() {
+      if (S) { S.orb.dispose(); S.ambient.dispose(); S.fx.composer.dispose(); }
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x06050b);
+      const camera = new THREE.PerspectiveCamera(60, W / H, 0.1, 400);
+      const pal = { a: new THREE.Color(PAL[0]), b: new THREE.Color(PAL[1]), c: new THREE.Color(PAL[2]), d: new THREE.Color(PAL[3]) };
+      const ctx = { renderer: gpu, scene, camera, pal, rig: { pos: new THREE.Vector3(0, 4, 14), look: new THREE.Vector3(), fov: 60 }, px: Math.max(0.6, H / 900), time: 0 };
+      camera.position.copy(ctx.rig.pos);
+      const ambient = createAmbientParticles(scene);
+      const orb = createOrb();
+      const real = Math.random;
+      Math.random = mulberry32(20261114); // seeded, so every render is identical
+      try { orb.init(ctx); } finally { Math.random = real; }
+      const composer = new EffectComposer(gpu);
+      const bloom = new UnrealBloomPass(new THREE.Vector2(W, H), 0.7, 0.55, 0.1);
+      composer.addPass(new RenderPass(scene, camera));
+      composer.addPass(bloom);
+      composer.addPass(new OutputPass());
+      composer.setSize(W, H);
+      S = { scene, camera, ctx, ambient, orb, fx: { composer, bloom }, look: new THREE.Vector3(), first: true, frame: -1, a: null };
+    }
+
+    const bands64 = new Float32Array(64);
+    function features(i) {
+      const k = Math.max(0, Math.min(F.n - 1, i));
+      const b = F.bands[k];
+      for (let j = 0; j < 64; j++) bands64[j] = b[j >> 2];
+      return { bands: bands64, bass: F.bass[k], mid: F.mid[k], treble: F.treble[k], kick: F.kick[k], energy: F.energy[k] };
+    }
+
+    // One tick of the app's render loop (renderer3d.js), at a fixed 60 Hz step.
+    function step(i) {
+      const a = features(i);
+      const c = S.ctx;
+      c.time += DT;
+      S.ambient.update(DT, a, c, true);
+      S.orb.update(DT, a, c);
+      const ck = S.first ? 1 : 1 - Math.exp(-DT * 2.4);
+      S.camera.position.lerp(c.rig.pos, ck);
+      S.look.lerp(c.rig.look, ck);
+      S.camera.lookAt(S.look);
+      if (Math.abs(S.camera.fov - c.rig.fov) > 0.01) { S.camera.fov += (c.rig.fov - S.camera.fov) * ck; S.camera.updateProjectionMatrix(); }
+      S.first = false;
+      S.fx.bloom.strength = 0.28 + a.energy * 0.25 + a.kick * 0.3;
+      S.fx.bloom.radius = 0.55 + a.bass * 0.25;
+      S.fx.bloom.threshold = 0.55;
+      S.frame = i;
+    }
+
+    function render(t) {
+      const target = Math.max(0, Math.round(t * HZ));
+      if (!S || target < S.frame) build();
+      while (S.frame < target) step(S.frame + 1);
+      // lens: shift (screen px at the 1.125 full-bleed scale) and zoom, applied to the projection only
+      const L = host.lens || { dx: 0, dy: 0, zoom: 1 };
+      S.camera.zoom = L.zoom;
+      S.camera.setViewOffset(W, H, -L.dx / 1.125, -L.dy / 1.125, W, H);
+      S.fx.composer.render(DT);
+    }
+
+    build();
+    render(0);
+    host.render = render;
+    host.ready();
+  </script>
+</template>

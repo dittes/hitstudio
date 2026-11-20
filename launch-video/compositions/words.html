@@ -1,0 +1,45 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; pointer-events: none; font-family: "Inter", sans-serif; color: #f5f3ff; }
+    #wd-drop { position: absolute; left: 0; right: 0; bottom: 112px; text-align: center; font-weight: 800; font-size: 136px; letter-spacing: -0.035em; line-height: 1; text-shadow: 0 0 70px rgba(6, 5, 11, 0.95), 0 4px 18px rgba(6, 5, 11, 0.9); }
+    #wd-drop span { display: inline-block; margin: 0 0.12em; }
+    .grad { background: linear-gradient(90deg, #f472b6, #fb923c); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none; filter: drop-shadow(0 0 30px rgba(6, 5, 11, 0.95)); }
+    #wd-claim { position: absolute; left: 150px; top: 330px; }
+    .wd-line { display: block; font-weight: 800; font-size: 128px; letter-spacing: -0.035em; line-height: 1.04; text-shadow: 0 6px 40px rgba(6, 5, 11, 0.8); }
+    #wd-sub { display: block; margin-top: 44px; font-weight: 600; font-size: 50px; letter-spacing: -0.015em; color: #c9c7d8; text-shadow: 0 4px 24px rgba(6, 5, 11, 0.8); }
+  </style>
+  <div id="root" data-composition-id="words" data-width="1920" data-height="1080">
+    <div id="wd-drop">
+      <span id="wd-w1">Watch</span><span id="wd-w2">it</span><span id="wd-w3">come</span><span id="wd-w4" class="grad">alive</span>
+    </div>
+    <div id="wd-claim">
+      <span id="wd-l1" class="wd-line">A whole studio.</span>
+      <span id="wd-l2" class="wd-line">One browser tab.</span>
+      <span id="wd-sub">No account. No upload.</span>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var tl = gsap.timeline({ paused: true });
+      // a word "lands": 6 frames from 1.06 + blur to rest, then holds still
+      function land(sel, at) {
+        tl.fromTo(sel, { opacity: 0, scale: 1.06, filter: "blur(10px)" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.2, ease: "power3.out" }, at);
+      }
+      var beat = 60 / 104;
+      // drop line on the beats of the chorus (local 0 = the downbeat)
+      land("#wd-w1", 2 * beat);
+      land("#wd-w2", 2.5 * beat);
+      land("#wd-w3", 3 * beat);
+      land("#wd-w4", 4 * beat);
+      tl.to("#wd-drop", { opacity: 0, filter: "blur(12px)", duration: 0.25, ease: "power2.in" }, 6.62);
+      // claim (local 6.923 = 23.077 s)
+      land("#wd-l1", 6.923 + 0.5 * beat);
+      land("#wd-l2", 6.923 + 2 * beat);
+      land("#wd-sub", 6.923 + 4 * beat);
+      tl.to("#wd-claim", { opacity: 0, filter: "blur(12px)", duration: 0.25, ease: "power2.in" }, 10.75);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["words"] = tl;
+    })();
+  </script>
+</template>

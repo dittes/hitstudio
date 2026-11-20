@@ -1,0 +1,50 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; background: #0c0c10; }
+    .rw-shot { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; }
+    #rw-viz { filter: url(#rw-blur-viz); }
+    #rw-mix { filter: url(#rw-blur-mix); }
+    #rw-edit { filter: url(#rw-blur-edit); }
+    #rw-create { filter: url(#rw-blur-create); }
+  </style>
+  <div id="root" data-composition-id="rewind" data-width="1920" data-height="1080">
+    <svg width="0" height="0" style="position: absolute">
+      <filter id="rw-blur-viz" x="-10%" width="120%"><feGaussianBlur id="rw-b-viz" stdDeviation="0 0" /></filter>
+      <filter id="rw-blur-mix" x="-10%" width="120%"><feGaussianBlur id="rw-b-mix" stdDeviation="0 0" /></filter>
+      <filter id="rw-blur-edit" x="-10%" width="120%"><feGaussianBlur id="rw-b-edit" stdDeviation="0 0" /></filter>
+      <filter id="rw-blur-create" x="-10%" width="120%"><feGaussianBlur id="rw-b-create" stdDeviation="0 0" /></filter>
+    </svg>
+    <img id="rw-create" class="rw-shot" src="assets/ui/create-0-empty.png" alt="" data-layout-allow-overflow />
+    <img id="rw-edit" class="rw-shot" src="assets/ui/edit-0.png" alt="" data-layout-allow-overflow />
+    <img id="rw-mix" class="rw-shot" src="assets/ui/mix-1.png" alt="" data-layout-allow-overflow />
+    <img id="rw-viz" class="rw-shot" src="assets/ui/viz-0.png" alt="" data-layout-allow-overflow />
+  </div>
+  <script>
+    (function () {
+      var tl = gsap.timeline({ paused: true });
+      var W = 1920;
+      // Rewind = the film runs backwards: every screen leaves to the RIGHT, the earlier one arrives from the LEFT.
+      function whipOut(id, at, dur, blur) {
+        tl.to("#rw-" + id, { x: W, duration: dur, ease: "power2.in" }, at);
+        tl.fromTo("#rw-b-" + id, { attr: { stdDeviation: "0 0" } }, { attr: { stdDeviation: blur + " 0" }, duration: dur, ease: "power2.in" }, at);
+      }
+      function whipIn(id, at, dur, blur, ease) {
+        tl.fromTo("#rw-" + id, { x: -W }, { x: 0, duration: dur, ease: ease || "power2.out" }, at);
+        tl.fromTo("#rw-b-" + id, { attr: { stdDeviation: blur + " 0" } }, { attr: { stdDeviation: "0 0" }, duration: dur, ease: ease || "power2.out" }, at);
+      }
+      tl.fromTo("#rw-viz", { x: 0 }, { x: 0, duration: 0.01 }, 0);
+      tl.fromTo(["#rw-mix", "#rw-edit", "#rw-create"], { x: -W }, { x: -W, duration: 0.01 }, 0);
+
+      whipOut("viz", 0.12, 0.3, 60);
+      whipIn("mix", 0.3, 0.22, 60);
+      whipOut("mix", 0.62, 0.24, 70);
+      whipIn("edit", 0.8, 0.2, 70);
+      whipOut("edit", 1.08, 0.22, 70);
+      // the tape brakes: Create arrives slower and settles, the start of the story
+      whipIn("create", 1.26, 0.62, 80, "power3.out");
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["rewind"] = tl;
+    })();
+  </script>
+</template>

@@ -1,0 +1,53 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; background: #0c0c10; }
+    #cr-cam { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+    .cr-shot { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+    #cr-cursor { position: absolute; left: 0; top: 0; width: 120px; height: 120px; }
+    #cr-cursor svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.55)); }
+    #cr-cursor path { fill: #fff; stroke: #0c0c10; stroke-width: 1.2; stroke-linejoin: round; }
+    #cr-ring { position: absolute; left: 1777px; top: 249px; width: 56px; height: 56px; border-radius: 50%; border: 3px solid #f472b6; }
+    .label { position: absolute; left: 120px; bottom: 120px; padding: 18px 30px 22px; background: #f5f3ff; color: #0c0c10; font-family: "Inter", sans-serif; font-weight: 800; font-size: 76px; letter-spacing: -0.03em; line-height: 1; white-space: nowrap; }
+  </style>
+  <div id="root" data-composition-id="create" data-width="1920" data-height="1080">
+    <div id="cr-cam" data-layout-allow-overflow>
+      <img id="cr-empty" class="cr-shot" src="assets/ui/create-0-empty.png" alt="" />
+      <img id="cr-idea" class="cr-shot" src="assets/ui/create-1-idea.png" alt="" />
+      <div id="cr-ring"></div>
+    </div>
+    <div id="cr-cursor" data-layout-allow-overflow>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3 L5 19 L9 15 L12 22 L15 20.5 L11.5 14 L18 14 Z" /></svg>
+    </div>
+    <div id="cr-label" class="label">Start with an idea</div>
+  </div>
+  <script>
+    (function () {
+      var tl = gsap.timeline({ paused: true });
+      // camera: transform-origin trick via x/y so the move stays one tween
+      gsap.set("#cr-cam", { transformOrigin: "0 0" });
+      // 1. push toward the code field (code "synthwave-epic-7" already typed)
+      tl.fromTo("#cr-cam", { scale: 1, x: 0, y: 0 }, { scale: 1.32, x: -560, y: -60, duration: 0.6, ease: "power3.out" }, 0);
+      // cursor enters from bottom-right and taps the load arrow on the beat (local 0.577)
+      // arrow centre in page space: (1805, 277) -> on screen: 1805*1.32-560 = 1823, 277*1.32-60 = 306
+      tl.fromTo("#cr-cursor", { x: 2000, y: 1100 }, { x: 1823 - 30, y: 306 - 18, duration: 0.42, ease: "power3.out" }, 0.1);
+      tl.to("#cr-cursor", { scale: 0.86, duration: 0.07, ease: "power2.in", transformOrigin: "25% 15%" }, 0.53);
+      tl.to("#cr-cursor", { scale: 1, duration: 0.12, ease: "power2.out" }, 0.6);
+      tl.fromTo("#cr-ring", { scale: 0.5, opacity: 0 }, { scale: 1.6, opacity: 1, duration: 0.12, ease: "power2.out" }, 0.577);
+      tl.to("#cr-ring", { scale: 2.1, opacity: 0, duration: 0.3, ease: "power2.out" }, 0.7);
+      // 2. the idea arrives: the real result of that click
+      tl.fromTo("#cr-idea", { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "none" }, 0.62);
+      tl.to("#cr-cursor", { x: 2100, y: 900, duration: 0.4, ease: "power2.in" }, 0.85);
+      // 3. camera travels down onto "Storm Horizon" and its grid
+      tl.to("#cr-cam", { scale: 1.15, x: -120, y: -162, duration: 0.7, ease: "power3.inOut" }, 0.95);
+      tl.to("#cr-cam", { scale: 1.2, x: -150, y: -216, duration: 1.5, ease: "none" }, 1.65);
+      // label prints on (wipe), then holds still
+      tl.fromTo("#cr-label", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.3, ease: "power3.out" }, 1.25);
+      // 4. forward cut: the screen leaves to the left (time runs forward again)
+      tl.to("#cr-cam", { x: -2070, duration: 0.3, ease: "power2.in" }, 3.162);
+      tl.to("#cr-label", { x: -1920, duration: 0.3, ease: "power2.in" }, 3.162);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["create"] = tl;
+    })();
+  </script>
+</template>

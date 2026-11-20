@@ -1,0 +1,32 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; }
+    #mx-cam { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; background: #0c0c10; filter: url(#mx-blur); box-shadow: -30px 0 80px rgba(0, 0, 0, 0.6); }
+    #mx-video { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; }
+    .label { position: absolute; left: 1170px; top: 470px; padding: 18px 30px 22px; background: #f5f3ff; color: #0c0c10; font-family: "Inter", sans-serif; font-weight: 800; font-size: 76px; letter-spacing: -0.03em; line-height: 1; white-space: nowrap; }
+  </style>
+  <div id="root" data-composition-id="mix" data-width="1920" data-height="1080">
+    <svg width="0" height="0" style="position: absolute"><filter id="mx-blur" x="-10%" width="120%"><feGaussianBlur id="mx-b" stdDeviation="0 0" /></filter></svg>
+    <div id="mx-cam" data-layout-allow-overflow>
+      <video id="mx-video" class="clip" src="assets/ui/mix.mp4" muted playsinline data-start="0" data-duration="3.185" data-media-start="0.4" data-track-index="1"></video>
+    </div>
+    <div id="mx-label" class="label">Mix it</div>
+  </div>
+  <script>
+    (function () {
+      var tl = gsap.timeline({ paused: true });
+      // Visualize icon in the rail, page coords
+      tl.fromTo("#mx-cam", { x: 1920, y: 0, scale: 1.5, transformOrigin: "36px 602px" }, { x: 0, duration: 0.3, ease: "power2.out" }, 0);
+      tl.fromTo("#mx-b", { attr: { stdDeviation: "60 0" } }, { attr: { stdDeviation: "0 0" }, duration: 0.3, ease: "power2.out" }, 0);
+      tl.to("#mx-cam", { scale: 1.62, duration: 2.3, ease: "power1.inOut" }, 0.3);
+      tl.fromTo("#mx-label", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.3, ease: "power3.out" }, 0.45);
+      tl.to("#mx-label", { clipPath: "inset(0 0% 0 100%)", duration: 0.2, ease: "power2.in" }, 2.55);
+      // into the drop: dive through the Visualize icon (cut lands on the downbeat at 3.185)
+      tl.to("#mx-cam", { scale: 26, x: 924, y: -62, duration: 0.45, ease: "power3.in" }, 2.735);
+      tl.to("#mx-b", { attr: { stdDeviation: "14 14" }, duration: 0.45, ease: "power3.in" }, 2.735);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["mix"] = tl;
+    })();
+  </script>
+</template>
